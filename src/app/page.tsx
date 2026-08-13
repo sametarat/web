@@ -10,11 +10,6 @@ import {
   CheckCircle2,
   Activity,
   Radio,
-  ExternalLink,
-  Utensils,
-  ShoppingBag,
-  Hotel,
-  Globe,
   X,
   Plus,
   ShoppingBasket,
@@ -28,6 +23,10 @@ import {
   Code,
   Bot,
   Maximize2,
+  Utensils,
+  ShoppingBag,
+  Hotel,
+  Globe,
   LucideIcon
 } from 'lucide-react';
 
@@ -146,17 +145,22 @@ const DEMO_LIST: DemoItem[] = [
 
 const CyberChatbot: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      id: 'init',
-      sender: 'bot', 
-      text: 'Merhaba! Ben Nexus AI Asistanı. İşletmeniz için en uygun web mimarisi, SEO veya reklam stratejileri hakkında size nasıl yardımcı olabilirim?', 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Hydration hatasını engellemek için ilk mesajı mount sonrası yüklüyoruz
+  useEffect(() => {
+    setMessages([
+      { 
+        id: 'init',
+        sender: 'bot', 
+        text: 'Merhaba! Ben Nexus AI Asistanı. İşletmeniz için en uygun web mimarisi, SEO veya reklam stratejileri hakkında size nasıl yardımcı olabilirim?', 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      }
+    ]);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -1271,9 +1275,49 @@ const LiveDemoShowcase: FC = () => {
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#02050e] text-slate-100 font-sans selection:bg-cyan-400 selection:text-black overflow-x-hidden relative scroll-smooth">
+    <div className="min-h-screen bg-[#02050e] text-slate-100 font-sans selection:bg-cyan-400 selection:text-black overflow-x-hidden relative scroll-smooth flex flex-col">
       <ParticleCanvas />
-      <TopAdBanner />
+      
+      {/* Header & Banner Wrapper */}
+      <div className="sticky top-0 z-40 w-full backdrop-blur-md">
+        <TopAdBanner />
+        <header className="py-4 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+          <div className="backdrop-blur-2xl bg-slate-950/80 border border-cyan-500/40 rounded-2xl px-6 py-4 flex items-center justify-between shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+            
+            <div className="flex items-center gap-3">
+              <div className="relative flex items-center justify-center">
+                <div className="w-3.5 h-3.5 rounded-full bg-cyan-400 animate-ping absolute" />
+                <div className="w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#06b6d4]" />
+              </div>
+              <span className="font-extrabold tracking-widest text-lg bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
+                NEXUS<span className="text-cyan-400">//</span>LABS
+              </span>
+            </div>
+
+            <nav className="hidden md:flex items-center gap-8 text-xs font-mono tracking-wider text-slate-300">
+              <Link href="#hizmetler" className="hover:text-cyan-400 transition-colors">Hizmetler</Link>
+              <Link href="#demolar" className="hover:text-cyan-400 transition-colors">Canlı Demolar</Link>
+              <Link href="#demo" className="hover:text-cyan-400 transition-colors">Yükleme Testi</Link>
+            </nav>
+
+            <div className="flex items-center gap-4">
+              <span className="hidden lg:flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+                <Activity className="w-3 h-3 animate-pulse" /> SİSTEM: 100/100
+              </span>
+              <Link 
+                href="#teklif-al" 
+                className="relative group overflow-hidden px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-xs uppercase tracking-wider transition-all hover:shadow-[0_0_25px_rgba(6,182,212,0.8)]"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <Radio className="w-3.5 h-3.5 animate-pulse" /> Siteni Dönüştür
+                </span>
+              </Link>
+            </div>
+          </div>
+        </header>
+      </div>
+
       <CyberChatbot />
 
       {/* Decorative Lights */}
@@ -1283,45 +1327,8 @@ export default function Home() {
         <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] bg-fuchsia-600/10 rounded-full blur-[160px]" />
       </div>
 
-      {/* Header */}
-      <header className="fixed top-12 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-6xl">
-        <div className="backdrop-blur-2xl bg-slate-950/80 border border-cyan-500/40 rounded-2xl px-6 py-4 flex items-center justify-between shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-          
-          <div className="flex items-center gap-3">
-            <div className="relative flex items-center justify-center">
-              <div className="w-3.5 h-3.5 rounded-full bg-cyan-400 animate-ping absolute" />
-              <div className="w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#06b6d4]" />
-            </div>
-            <span className="font-extrabold tracking-widest text-lg bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
-              NEXUS<span className="text-cyan-400">//</span>LABS
-            </span>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-8 text-xs font-mono tracking-wider text-slate-300">
-            <Link href="#hizmetler" className="hover:text-cyan-400 transition-colors">Hizmetler</Link>
-            <Link href="#demolar" className="hover:text-cyan-400 transition-colors">Canlı Demolar</Link>
-            <Link href="#demo" className="hover:text-cyan-400 transition-colors">Yükleme Testi</Link>
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <span className="hidden lg:flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-              <Activity className="w-3 h-3 animate-pulse" /> SİSTEM: 100/100
-            </span>
-            <Link 
-              href="#teklif-al" 
-              className="relative group overflow-hidden px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-xs uppercase tracking-wider transition-all hover:shadow-[0_0_25px_rgba(6,182,212,0.8)]"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <Radio className="w-3.5 h-3.5 animate-pulse" /> Siteni Dönüştür
-              </span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="relative z-10 pt-48 pb-24 px-4 sm:px-6 max-w-6xl mx-auto space-y-36">
+      <main className="relative z-10 pt-12 pb-24 px-4 sm:px-6 max-w-6xl mx-auto space-y-36 flex-1">
         
         {/* Hero Section */}
         <section className="text-center space-y-10 relative">
