@@ -27,6 +27,7 @@ import {
   ShoppingBag,
   Hotel,
   Globe,
+  ExternalLink,
   LucideIcon
 } from 'lucide-react';
 
@@ -105,7 +106,7 @@ const DEMO_LIST: DemoItem[] = [
     title: 'Gurme Restoran & Bistro',
     subtitle: 'La Maison - Fine Dining & Gastronomy',
     category: 'Gastronomi & Restoran',
-    path: '#demolar',
+    path: '/demo/gurme-restoran',
     icon: Utensils,
     badgeColor: 'border-amber-500/40 text-amber-400 bg-amber-500/10',
     accentColor: 'text-amber-400',
@@ -118,7 +119,7 @@ const DEMO_LIST: DemoItem[] = [
     title: 'Moda & Lüks E-Ticaret',
     subtitle: 'Vogue & Urban Culture',
     category: 'E-Ticaret & Moda',
-    path: '#demolar',
+    path: '/demo/moda-eticaret',
     icon: ShoppingBag,
     badgeColor: 'border-pink-500/40 text-pink-400 bg-pink-500/10',
     accentColor: 'text-pink-400',
@@ -131,7 +132,7 @@ const DEMO_LIST: DemoItem[] = [
     title: 'Otel & Lüks Konaklama',
     subtitle: 'Grand Azure Resort & Spa',
     category: 'Turizm & Otelcilik',
-    path: '#demolar',
+    path: '/demo/otel-rezervasyon',
     icon: Hotel,
     badgeColor: 'border-blue-500/40 text-blue-400 bg-blue-500/10',
     accentColor: 'text-blue-400',
@@ -150,7 +151,6 @@ const CyberChatbot: FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Hydration hatasını engellemek için ilk mesajı mount sonrası yüklüyoruz
   useEffect(() => {
     setMessages([
       { 
@@ -1139,12 +1139,12 @@ const LiveDemoShowcase: FC = () => {
           const isSelected = activeDemo.id === demo.id;
 
           return (
-            <motion.button
+            <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               key={demo.id}
               onClick={() => handleDemoChange(demo)}
-              className={`p-5 rounded-2xl border text-left transition-all duration-300 relative group overflow-hidden ${
+              className={`p-5 rounded-2xl border text-left transition-all duration-300 relative group cursor-pointer overflow-hidden ${
                 isSelected
                   ? 'bg-gradient-to-br from-slate-900 to-slate-950 border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.35)] ring-1 ring-cyan-400/50'
                   : 'bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/50'
@@ -1164,10 +1164,18 @@ const LiveDemoShowcase: FC = () => {
                 {demo.title}
               </h4>
               <p className="text-[11px] text-slate-400 mt-1 font-mono">{demo.category}</p>
-              <div className="mt-3 text-[10px] font-mono text-cyan-400/80 flex items-center gap-1">
-                <span>Simülasyonu İncele</span> &rarr;
+              
+              <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60">
+                <span className="text-[10px] font-mono text-slate-400">Simülasyon</span>
+                <Link
+                  href={demo.path}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-[10px] font-mono font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 z-10"
+                >
+                  Sayfaya Git <ExternalLink className="w-3 h-3" />
+                </Link>
               </div>
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
@@ -1187,6 +1195,14 @@ const LiveDemoShowcase: FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href={activeDemo.path}
+              className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono font-bold transition-all flex items-center gap-1.5 border border-slate-700"
+            >
+              <span>Sayfaya Git</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+
             <button
               onClick={() => setIsFullscreenPreview(true)}
               className="px-4 py-1.5 rounded-xl bg-cyan-400/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-400 hover:text-slate-950 text-xs font-mono font-bold transition-all flex items-center gap-1.5 shadow"
@@ -1258,13 +1274,13 @@ const LiveDemoShowcase: FC = () => {
               SIMULATOR ENGINE: <code className="text-cyan-400">Nexus Edge Hydration v2.4</code>
             </span>
 
-            <button
-              onClick={() => setIsFullscreenPreview(true)}
+            <Link
+              href={activeDemo.path}
               className="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:scale-105 transition-all flex items-center justify-center gap-2"
             >
-              <span>Gelişmiş Modda Test Et</span>
+              <span>Özel Sayfasına Git</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -1468,7 +1484,7 @@ export default function Home() {
             <h2 className="text-xs font-mono text-cyan-400 tracking-widest uppercase">// LIVE INTERACTIVE DEMOS</h2>
             <h3 className="text-3xl sm:text-4xl font-extrabold text-white">İnteraktif Sektörel Simülatör</h3>
             <p className="text-slate-400 text-sm max-w-lg mx-auto font-light">
-              Aşağıdaki demolar üzerinden sitenize eklenebilecek özellikleri canlı olarak deneyimleyebilirsiniz.
+              Aşağıdaki demolar üzerinden sitenize eklenebilecek özellikleri canlı olarak deneyimleyebilir veya doğrudan sayfalarına gidebilirsiniz.
             </p>
           </div>
 
