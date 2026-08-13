@@ -7,7 +7,7 @@ const RATE_LIMIT_WINDOW = 60 * 1000; // 1 dakika
 const MAX_REQUESTS = 30; // Dakikada maksimum 30 istek
 
 export function middleware(request: NextRequest) {
-  const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
   const now = Date.now();
 
   const record = ipRequestMap.get(ip);
