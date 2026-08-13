@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, FC, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, useRef, FC, FormEvent, ChangeEvent, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -158,15 +158,15 @@ const CyberChatbot: FC = () => {
     ]);
   }, []);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, scrollToBottom]);
 
   const handleSendMessage = (textToSend?: string) => {
     const text = textToSend || inputValue;
@@ -284,6 +284,7 @@ const CyberChatbot: FC = () => {
             <div className="p-2.5 sm:p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
               <input
                 type="text"
+                aria-label="Mesajınız"
                 placeholder="Mesajınızı yazın..."
                 value={inputValue}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
@@ -302,7 +303,6 @@ const CyberChatbot: FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Responsive FAB / Button Trigger */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -394,6 +394,8 @@ const LeadCaptureSection: FC = () => {
                 <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   type="text"
+                  inputMode="url"
+                  aria-label="Web Siteniz"
                   placeholder="Web siteniz (örn: sirketiniz.com)"
                   value={website}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setWebsite(e.target.value)}
@@ -405,6 +407,7 @@ const LeadCaptureSection: FC = () => {
                 <input
                   type="email"
                   required
+                  aria-label="E-posta Adresiniz"
                   placeholder="E-posta adresiniz"
                   value={email}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
@@ -564,8 +567,10 @@ const InteractiveRestaurantMockup: FC<{ activeTab: string }> = ({ activeTab }) =
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
-  // iPhone 12 için dinamik başlangıç tarihi (1 gün sonrası)
-  const tomorrowDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  // Optimisation: Re-render sırasında sürekli yeni Date objesi üretilmemesi için useMemo kullanımı
+  const tomorrowDate = useMemo(() => {
+    return new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  }, []);
 
   const menuData = [
     { id: 1, name: 'Dry-Aged Truffle Ribeye', price: 1200, category: 'Şefin Spesiyalleri', desc: '28 gün dinlendirilmiş sığır pirzola, siyah trüf mantarı yağı ile.' },
@@ -593,8 +598,8 @@ const InteractiveRestaurantMockup: FC<{ activeTab: string }> = ({ activeTab }) =
           </h4>
           <p className="text-xs text-slate-400">Restoranımızda anlık masa müsaitliğini test edin.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <input type="date" defaultValue={tomorrowDate} className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white w-full" />
-            <select className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white w-full">
+            <input type="date" aria-label="Rezervasyon Tarihi" defaultValue={tomorrowDate} className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white w-full" />
+            <select aria-label="Kişi Sayısı Seçimi" className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white w-full">
               <option>2 Kişilik Masa</option>
               <option>4 Kişilik VIP Masa</option>
               <option>6+ Kişilik Grup</option>
@@ -1064,6 +1069,7 @@ const LiveDemoShowcase: FC = () => {
               <button 
                 onClick={() => setIsFullscreenPreview(false)}
                 className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 ml-2"
+                aria-label="Önizlemeyi Kapat"
               >
                 <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>

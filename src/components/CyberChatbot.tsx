@@ -1,127 +1,110 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
-
-interface Message {
-  id: string;
-  sender: 'bot' | 'user';
-  text: string;
-}
+import React, { useState } from 'react';
+import { Bot, Send, X } from 'lucide-react';
+import { Message } from '@/types';
+import { PRESET_QUESTIONS } from '@/data/constants';
 
 export const CyberChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
       sender: 'bot',
-      text: 'Merhaba! Dijital dönüşüm ve AI çözümlerimiz hakkında size nasıl yardımcı olabilirim?',
-    },
-  ]);
-
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      text: 'Merhaba! Nexus Labs yapay zeka asistanıyım. Projeniz hakkında merak ettiğiniz bir konu var mı?'
     }
-  }, [messages, isOpen]);
+  ]);
+  const [input, setInput] = useState('');
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSend = (textToSend?: string) => {
+    const query = textToSend || input;
+    if (!query.trim()) return;
 
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      sender: 'user',
-      text: input,
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+    setMessages((prev) => [...prev, { sender: 'user', text: query }]);
+    if (!textToSend) setInput('');
 
     setTimeout(() => {
-      const botMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'bot',
-        text: 'Mesajınız alındı. Sizi uygun uzmanımıza yönlendiriyorum.',
-      };
-      setMessages((prev) => [...prev, botMsg]);
-    }, 1000);
+      const matched = PRESET_QUESTIONS.find((q) =>
+        query.toLowerCase().includes(q.question.toLowerCase().split(' ')[0])
+      );
+
+      const botReply = matched
+        ? matched.answer
+        : 'Harika bir soru! Detaylı teknik analiz ve teklif için ekibimiz sizinle iletişime geçebilir.';
+
+      setMessages((prev) => [...prev, { sender: 'bot', text: botReply }]);
+    }, 500);
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {!isOpen && (
+      {!isOpen ? (
         <button
-          type="button"
           onClick={() => setIsOpen(true)}
-          className="p-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-full shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105 flex items-center justify-center"
-          aria-label="Chatbot'u Aç"
+          className="bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-full shadow-2xl shadow-blue-600/40 transition-all hover:scale-105 flex items-center justify-center group"
+          aria-label="Sohbeti Aç"
         >
-          <MessageSquare className="w-6 h-6" />
+          <Bot className="w-6 h-6 group-hover:rotate-12 transition-transform" />
         </button>
-      )}
-
-      {isOpen && (
-        <div className="w-80 md:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[480px] overflow-hidden animate-fade-in">
-          <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-cyan-400" />
-              <span className="font-semibold text-white text-sm">AI Asistan</span>
+      ) : (
+        <div className="w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[480px]">
+          <div className="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-white">Nexus AI Assistant</h4>
+                <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Çevrimiçi
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
+            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white p-1">
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-3">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2 ${
-                  msg.sender === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {msg.sender === 'bot' && (
-                  <div className="w-6 h-6 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center shrink-0">
-                    <Bot className="w-3.5 h-3.5" />
-                  </div>
-                )}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+            {messages.map((m, idx) => (
+              <div key={idx} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`p-3 rounded-xl text-xs max-w-[80%] ${
-                    msg.sender === 'user'
-                      ? 'bg-cyan-500 text-slate-950 font-medium'
-                      : 'bg-slate-800 text-slate-200'
+                  className={`max-w-[80%] p-3 rounded-2xl ${
+                    m.sender === 'user'
+                      ? 'bg-blue-600 text-white rounded-br-none'
+                      : 'bg-slate-800 text-slate-200 border border-slate-700/50 rounded-bl-none'
                   }`}
                 >
-                  {msg.text}
+                  {m.text}
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={handleSend} className="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
+          <div className="p-2 bg-slate-950/50 border-t border-slate-800/60 overflow-x-auto flex gap-1.5 no-scrollbar">
+            {PRESET_QUESTIONS.map((q) => (
+              <button
+                key={q.id}
+                onClick={() => handleSend(q.question)}
+                className="whitespace-nowrap text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700/50 transition-colors"
+              >
+                {q.question}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
             <input
               type="text"
-              placeholder="Bir mesaj yazın..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="Mesajınızı yazın..."
+              className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
-            <button
-              type="submit"
-              className="p-2 bg-cyan-500 text-slate-950 rounded-lg hover:bg-cyan-400 transition-colors"
-            >
+            <button onClick={() => handleSend()} className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl">
               <Send className="w-4 h-4" />
             </button>
-          </form>
+          </div>
         </div>
       )}
     </div>

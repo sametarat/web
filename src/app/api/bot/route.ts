@@ -1,55 +1,90 @@
-import { NextResponse } from 'next/server';
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText, tool } from 'ai';
+import { z } from 'zod';
 
-interface BotRequest {
-  stage: number;
-  input: string;
-}
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-// Basit sanitizasyon fonksiyonu (XSS koruması için temel escape)
-function sanitizeInput(str: string): string {
-  return str.replace(/[<>]/g, '');
-}
+export async function POST(req: Request) {
+  const { messages } = await req.json();
 
-export async function POST(request: Request) {
-  try {
-    const body: BotRequest = await request.json();
-    const { stage, input } = body;
+  const result = streamText({
+    model: openai('gpt-4o-mini'),
+    system: `
+      Sen NEXUS//LABS web mimarisi, özel yazılım ve dijital dönüşüm ajansının kıdemli satış ve teknik danışmanısın.
 
-    if (!stage || typeof input !== 'string') {
-      return NextResponse.json({ error: 'Geçersiz parametreler.' }, { status: 400 });
-    }
+      ==================================================
+      🏢 KURUMSAL BİLGİ VE HİZMET KATALOĞU
+      ==================================================
+      1. HİZMETLERİMİZ:
+         - Kurumsal Web Tasarım & Geliştirme (Next.js 16, React 19, Tailwind CSS ile yüksek hızlı, SEO uyumlu ve mobil odaklı siteler).
+         - E-Ticaret Sistemleri (Yüksek dönüşüm odaklı, ödeme entegrasyonlu, gelişmiş stok yönetimli platformlar).
+         - Özel Web/Mobil Yazılım & Mimariler (SaaS projeleri, ERP/CRM çözümleri, mobil uygulamalar).
+         - Dijital Strateji & SEO (Arama motoru optimizasyonu, sayfa hızı skorları (Lighthouse 90+), dönüşüm optimizasyonu).
 
-    const cleanInput = sanitizeInput(input);
+      2. NEDEN NEXUS//LABS?
+         - Eski nesil yavaş sistemler (WordPress vb.) yerine en son web teknolojilerini (Next.js App Router, Turbopack) kullanırız.
+         - Sayfa yüklenme hızlarımız ultra yüksektir (Sub-second loading).
+         - Güvenli ve modern mimariler uygularız.
+         - Tamamen markaya özel, modern ve responsive tasarımlar hazırlarız.
 
-    switch (stage) {
-      case 1:
-        // Aşama 1: Niyet Analizi ve Alt Soru Üretimi
-        return NextResponse.json({
-          nextStage: 2,
-          response: `Analiz edilen girdi: "${cleanInput}".`,
-          subQuestion: 'Bu süreci hangi ana kategoride optimize etmek istiyorsunuz?',
-        });
+      3. TEKLİF VE SÜREÇ SİSTEMİ:
+         - Projeler analiz, tasarım, geliştirme, test ve canlıya alma aşamalarıyla yürütülür.
+         - Ortalama teslim süreleri: Kurumsal siteler için 1-3 hafta, E-ticaret & Özel projeler için 3-6 haftadır.
 
-      case 2:
-        // Aşama 2: Optimizasyon ve Veri İşleme
-        return NextResponse.json({
-          nextStage: 3,
-          response: 'Optimizasyon kuralları uygulandı ve performans testleri tamamlandı.',
-          subQuestion: 'Çıktıyı rapor formatında kaydetmek ister misiniz?',
-        });
+      ==================================================
+      🎯 MÜŞTERİ YÖNLENDİRME STRATEJİSİ
+      ==================================================
+      1. Ziyaretçi soru sorduğunda yukarıdaki bilgilerden faydalanarak net, kendinden emin ve profesyonel yanıtlar ver.
+      2. Müşteri fiyat, teklif veya süreç sorduğunda:
+         - Asla harici bir forma yönlendirme yapma!
+         - "Size özel doğru teklifi ve proje takvimini çıkarabilmemiz için Ad-Soyad ve Telefon/E-posta bilgilerinizi alabilir miyim?" şeklinde bilgi iste.
+      3. Müşteri iletişim bilgilerini paylaştığı an DERHAL 'saveQualifiedLead' fonksiyonunu çalıştır.
+    `,
+    messages,
+    tools: {
+      saveQualifiedLead: tool({
+        description: 'Potansiyel müşterinin proje detaylarını ve iletişim bilgilerini kaydeder.',
+        parameters: z.object({
+          fullName: z.string().describe('Müşterinin adı soyadı'),
+          contactInfo: z.string().describe('Müşterinin telefon numarası veya e-posta adresi'),
+          projectType: z.string().describe('İlgilendiği hizmet (Örn: E-ticaret, Kurumsal Site, Özel Yazılım)'),
+          notes: z.string().optional().describe('Müşterinin bahsettiği özel detaylar veya beklentiler'),
+        }),
+        execute: async ({ fullName, contactInfo, projectType, notes }) => {
+          console.log('🚀 --- YENİ MÜŞTERİ BİLGİSİ YAKALANDI ---');
+          console.log({ fullName, contactInfo, projectType, notes });
 
-      case 3:
-        // Aşama 3: Nihai Çıktı ve Eylem (CTA)
-        return NextResponse.json({
-          nextStage: null,
-          response: `İşlem başarıyla tamamlandı: ${cleanInput}`,
-          actionCTA: 'Canlı Demoyu Test Et veya E-posta Gönder',
-        });
+          // WhatsApp Bildirim Entegrasyonu (İsteğe bağlı CallMeBot veya Webhook)
+          const myPhoneNumber = "905XXXXXXXXX"; // Telefon numaranız
+          const apiKey = "CALLMEBOT_API_KEY"; // CallMeBot API Anahtarınız
 
-      default:
-        return NextResponse.json({ error: 'Bilinmeyen aşama.' }, { status: 400 });
-    }
-  } catch (err) {
-    return NextResponse.json({ error: 'Sunucu hatası oluştu.' }, { status: 500 });
-  }
+          if (apiKey !== "CALLMEBOT_API_KEY") {
+            const whatsappMessage = encodeURIComponent(
+              `🔥 *YENİ MÜŞTERİ BİLGİSİ YAKALANDI!*\n\n` +
+              `👤 *İsim:* ${fullName}\n` +
+              `📞 *İletişim:* ${contactInfo}\n` +
+              `💼 *Hizmet:* ${projectType}\n` +
+              `📝 *Notlar:* ${notes || 'Belirtilmedi'}`
+            );
+
+            try {
+              await fetch(`https://api.callmebot.com/whatsapp.php?phone=${myPhoneNumber}&text=${whatsappMessage}&apikey=${apiKey}`);
+            } catch (error) {
+              console.error('WhatsApp bildirimi gönderilemedi:', error);
+            }
+          }
+
+          return {
+            status: 'success',
+            message: `Harika! ${fullName} Bey/Hanım, proje detaylarınızı ve iletişim bilgilerinizi kaydettim. Ekibimiz en kısa sürede sizinle iletişime geçecektir.`,
+          };
+        },
+      }),
+    },
+    maxSteps: 3,
+  });
+
+  return result.toDataStreamResponse();
 }

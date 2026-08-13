@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useTransition } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, 
@@ -17,9 +18,10 @@ import {
   Compass,
   ArrowUpRight,
   CheckCircle2,
-  Radio,
-  Cpu,
-  Zap
+  ArrowLeft,
+  PhoneCall,
+  Calendar,
+  Users
 } from 'lucide-react';
 
 interface MenuItem {
@@ -142,12 +144,10 @@ export default function AvantGardeGastronomyPage() {
   const [isReserved, setIsReserved] = useState(false);
   const [, startTransition] = useTransition();
 
-  // İnteraktif Rezervasyon Konfigüratör
   const [seatingArea, setSeatingArea] = useState<'Chef Table' | 'Main Dining' | 'Terrace Lounge' | 'Private Room'>('Chef Table');
   const [guestCount, setGuestCount] = useState<number>(2);
   const [timeSlot, setTimeSlot] = useState<string>('20:00');
 
-  // Filtrelenmiş menüyü memoize ederek gereksiz hesaplamaları engelliyoruz
   const filteredMenu = useMemo(() => {
     if (selectedCategory === 'Tümü') return MENU_ITEMS;
     return MENU_ITEMS.filter((item) => item.category === selectedCategory);
@@ -179,11 +179,32 @@ export default function AvantGardeGastronomyPage() {
       <div className="fixed top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-amber-600/15 via-amber-900/5 to-transparent rounded-full blur-[160px] pointer-events-none z-0" />
       <div className="fixed bottom-1/4 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[180px] pointer-events-none z-0" />
 
+      {/* Top Header / Navigation Bar */}
+      <header className="sticky top-0 z-50 w-full bg-[#020204]/80 backdrop-blur-2xl border-b border-amber-500/20 px-6 md:px-12 py-4 flex items-center justify-between">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-amber-300 text-xs font-mono transition-all"
+        >
+          <ArrowLeft className="w-4 h-4 text-amber-400" />
+          <span>Ana Sayfaya Dön</span>
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={openWhatsApp}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all"
+          >
+            <PhoneCall className="w-3.5 h-3.5" />
+            <span>İletişime Geç</span>
+          </button>
+        </div>
+      </header>
+
       {/* Hero Section */}
-      <section className="relative min-h-[75vh] flex items-center justify-center px-6 md:px-12 overflow-hidden border-b border-amber-500/10">
+      <section className="relative min-h-[70vh] flex items-center justify-center px-6 md:px-12 overflow-hidden border-b border-amber-500/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-950/20 via-[#020204] to-[#020204]" />
         
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8 py-16">
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8 py-12">
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -208,7 +229,7 @@ export default function AvantGardeGastronomyPage() {
             transition={{ delay: 0.15 }}
             className="text-slate-300 text-base md:text-2xl max-w-3xl mx-auto font-light leading-relaxed tracking-wide"
           >
-            Sanatın moleküler lezzetlerle buluştuğu nokta. 4K görsel kalitede hazırlanan anlık menü ve VIP Masa Konfigüratörü.
+            Sanatın moleküler lezzetlerle buluştuğu nokta. Özel tadım menümüz ve ayrıcalıklı VIP rezervasyon deneyimi.
           </motion.p>
 
           <motion.div 
@@ -238,12 +259,11 @@ export default function AvantGardeGastronomyPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
             <span className="text-amber-400 font-mono text-xs uppercase tracking-[0.3em] font-bold flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4" /> Visual Menu Showcase
+              <Sparkles className="w-4 h-4" /> Özel Lezzetler
             </span>
             <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight font-serif">A la Carte & Tadım</h2>
           </div>
 
-          {/* Kategori Filtreleri */}
           <div className="flex flex-wrap gap-2 p-2 bg-slate-950/80 border border-amber-500/20 rounded-2xl backdrop-blur-2xl shadow-2xl">
             {CATEGORIES.map((cat) => (
               <button
@@ -275,7 +295,6 @@ export default function AvantGardeGastronomyPage() {
                 className="group rounded-3xl bg-slate-950/80 border border-amber-500/20 hover:border-amber-500/60 overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_40px_rgba(245,158,11,0.18)] backdrop-blur-xl relative"
               >
                 <div>
-                  {/* Görsel Kutusu */}
                   <div className="relative h-64 overflow-hidden bg-slate-900">
                     <img 
                       src={item.image} 
@@ -287,12 +306,10 @@ export default function AvantGardeGastronomyPage() {
 
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90 z-20" />
                     
-                    {/* Rozet */}
                     <div className="absolute top-4 left-4 z-30 px-3 py-1 rounded-full bg-slate-950/80 border border-amber-500/40 text-amber-300 text-[10px] font-mono font-bold tracking-wider uppercase backdrop-blur-md shadow-lg">
                       {item.badge}
                     </div>
 
-                    {/* Zoom Butonu */}
                     <button
                       onClick={() => setSelectedImage(item.image)}
                       aria-label="Görseli Büyüt"
@@ -306,7 +323,6 @@ export default function AvantGardeGastronomyPage() {
                     </div>
                   </div>
 
-                  {/* Detay Bilgileri */}
                   <div className="p-6 space-y-4">
                     <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 border-b border-slate-900 pb-3">
                       <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5 text-amber-500" /> {item.calories}</span>
@@ -323,7 +339,6 @@ export default function AvantGardeGastronomyPage() {
                   </div>
                 </div>
 
-                {/* Şarap Eşleşmesi ve Alt Bilgi */}
                 <div className="p-6 pt-0 space-y-4">
                   <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-400 flex items-center gap-1.5">
@@ -336,7 +351,7 @@ export default function AvantGardeGastronomyPage() {
                     onClick={openWhatsApp}
                     className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 hover:border-amber-500 text-slate-200 text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
                   >
-                    <span>Şefin Masasına Özel Sipariş</span>
+                    <span>Özel Masa Talebi</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -348,36 +363,34 @@ export default function AvantGardeGastronomyPage() {
 
       {/* Rezervasyon Konsolu */}
       <section className="py-20 px-6 md:px-12 max-w-6xl mx-auto relative z-10">
-        <div className="relative rounded-[36px] bg-[#040408] border border-amber-500/40 p-8 md:p-14 overflow-hidden shadow-[0_0_100px_rgba(245,158,11,0.15)] backdrop-blur-3xl">
+        <div className="relative rounded-[36px] bg-[#05050a] border border-amber-500/30 p-8 md:p-14 overflow-hidden shadow-[0_0_80px_rgba(245,158,11,0.1)] backdrop-blur-3xl">
           
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f2e15_1px,transparent_1px),linear-gradient(to_bottom,#1f1f2e15_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none" />
-
           <div className="max-w-4xl mx-auto space-y-10 relative z-10">
             
             {/* Header */}
             <div className="flex flex-col md:flex-row items-center justify-between border-b border-amber-500/20 pb-6 gap-6 text-center md:text-left">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-mono font-bold tracking-widest uppercase">
-                  <Radio className="w-3.5 h-3.5 animate-pulse text-amber-400" />
-                  <span>Holographic Nexus v4.2 // Secure Terminal</span>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-mono font-semibold tracking-widest uppercase">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Anlık Masa Rezervasyonu</span>
                 </div>
-                <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight font-serif">
-                  Quantum Table Configurator
+                <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight font-serif">
+                  VIP Masa Rezervasyonu
                 </h2>
               </div>
               <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/60 border border-amber-500/30 text-xs font-mono text-amber-300 shadow-inner">
-                <Cpu className="w-5 h-5 text-amber-400 animate-spin" />
+                <Clock className="w-4 h-4 text-amber-400" />
                 <div>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">AI Synced Slots</div>
-                  <div className="font-bold">Real-time Telemetry Active</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Canlı Durum</div>
+                  <div className="font-bold">Masa Müsaitliği Aktif</div>
                 </div>
               </div>
             </div>
 
             {/* Salon Seçimi */}
             <div className="space-y-4">
-              <label className="block text-xs font-mono uppercase tracking-[0.2em] text-amber-400/80 font-bold">
-                01. Deneyim Alanını Seçin
+              <label className="block text-xs font-mono uppercase tracking-[0.2em] text-amber-400/90 font-bold">
+                01. Oturum Alanı Seçimi
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
@@ -392,7 +405,7 @@ export default function AvantGardeGastronomyPage() {
                     onClick={() => setSeatingArea(area.name as any)}
                     className={`group relative p-5 rounded-2xl border transition-all duration-300 text-left ${
                       seatingArea === area.name
-                        ? 'bg-gradient-to-b from-amber-500/20 to-black/80 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.25)]'
+                        ? 'bg-gradient-to-b from-amber-500/20 to-black/80 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.2)]'
                         : 'bg-black/40 border-slate-800/80 text-slate-400 hover:border-amber-500/40'
                     }`}
                   >
@@ -417,9 +430,9 @@ export default function AvantGardeGastronomyPage() {
                 <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center mx-auto text-emerald-400">
                   <CheckCircle2 className="w-7 h-7" />
                 </div>
-                <h3 className="text-2xl font-black text-white font-serif">Kuantum Rezervasyonunuz Onaylandı!</h3>
+                <h3 className="text-2xl font-black text-white font-serif">Rezervasyon Talebiniz Alındı!</h3>
                 <p className="text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
-                  <span className="text-amber-400 font-bold">{seatingArea}</span> lokasyonunda, <span className="text-amber-400 font-bold">{guestCount} Misafir</span> için saat <span className="text-amber-400 font-bold">{timeSlot}</span> oturumunuz rezerve edilmiştir. VIP konsiyerj pass kodunuz WhatsApp hattınıza iletildi.
+                  <span className="text-amber-400 font-bold">{seatingArea}</span> alanında, <span className="text-amber-400 font-bold">{guestCount} Konuk</span> için saat <span className="text-amber-400 font-bold">{timeSlot}</span> oturum talebiniz iletilmiştir. Concierge ekibimiz WhatsApp üzerinden tarafınıza doğrulama gönderecektir.
                 </p>
               </motion.div>
             ) : (
@@ -432,13 +445,13 @@ export default function AvantGardeGastronomyPage() {
                     <input
                       type="text"
                       required
-                      placeholder="Örn: Lord / Lady Altuğ"
+                      placeholder="Örn: Ahmet Yılmaz"
                       className="w-full px-5 py-3.5 rounded-2xl bg-black/80 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-400 transition-all placeholder:text-slate-600"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                      03. İletişim Hattı (WhatsApp / SMS)
+                      03. İletişim Hattı (WhatsApp / Telefon)
                     </label>
                     <input
                       type="tel"
@@ -451,8 +464,9 @@ export default function AvantGardeGastronomyPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                   <div className="space-y-2">
-                    <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                      04. Deneyim Tarihi
+                    <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                      04. Rezervasyon Tarihi
                     </label>
                     <input
                       type="date"
@@ -461,7 +475,8 @@ export default function AvantGardeGastronomyPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
+                    <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
                       05. Oturum Saati
                     </label>
                     <select 
@@ -475,8 +490,9 @@ export default function AvantGardeGastronomyPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                      06. Misafir Kapasitesi
+                    <label className="block text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-amber-400" />
+                      06. Kişi Sayısı
                     </label>
                     <select 
                       value={guestCount} 
@@ -493,10 +509,9 @@ export default function AvantGardeGastronomyPage() {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600 text-slate-950 font-black text-xs uppercase tracking-[0.25em] shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:shadow-[0_0_50px_rgba(245,158,11,0.6)] transition-all flex items-center justify-center gap-3"
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_25px_rgba(245,158,11,0.25)] hover:shadow-[0_0_40px_rgba(245,158,11,0.4)] transition-all flex items-center justify-center gap-2"
                   >
-                    <Zap className="w-4 h-4 fill-slate-950" />
-                    <span>Kuantum Kod ile Anında Rezerve Et</span>
+                    <span>Rezervasyon Talebini Gönder</span>
                     <ArrowUpRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -542,7 +557,7 @@ export default function AvantGardeGastronomyPage() {
       </AnimatePresence>
 
       <footer className="py-10 border-t border-slate-900 text-center text-xs font-mono text-slate-500">
-        <p>© L'Étoile Noir Showcase</p>
+        <p>© L'Étoile Noir Haute Gastronomie</p>
       </footer>
     </main>
   );
