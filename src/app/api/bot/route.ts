@@ -6,11 +6,21 @@ const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Tool parametreleri için arayüz (Interface) tanımı
+interface SaveQualifiedLeadArgs {
+  fullName: string;
+  contactInfo: string;
+  projectType: string;
+  notes?: string;
+}
+
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
     model: openai('gpt-4o-mini'),
+    // maxSteps doğrudan streamText objesinin kök seviyesinde kalmalıdır
+    maxSteps: 3,
     system: `
       Sen NEXUS//LABS web mimarisi, özel yazılım ve dijital dönüşüm ajansının kıdemli satış ve teknik danışmanısın.
 
@@ -52,7 +62,7 @@ export async function POST(req: Request) {
           projectType: z.string().describe('İlgilendiği hizmet (Örn: E-ticaret, Kurumsal Site, Özel Yazılım)'),
           notes: z.string().optional().describe('Müşterinin bahsettiği özel detaylar veya beklentiler'),
         }),
-        execute: async ({ fullName, contactInfo, projectType, notes }) => {
+        execute: async ({ fullName, contactInfo, projectType, notes }: SaveQualifiedLeadArgs) => {
           console.log('🚀 --- YENİ MÜŞTERİ BİLGİSİ YAKALANDI ---');
           console.log({ fullName, contactInfo, projectType, notes });
 
@@ -83,7 +93,6 @@ export async function POST(req: Request) {
         },
       }),
     },
-    maxSteps: 3,
   });
 
   return result.toDataStreamResponse();
