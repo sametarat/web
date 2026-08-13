@@ -1,18 +1,18 @@
 'use client';
 
-// Göreceli yollarla tam eşleşen import'lar:
+// Relative path (../components/) kullanılarak import alias problemleri tamamen aşılır:
+import { TopAdBanner } from '../components/TopAdBanner';
 import { ParticleCanvas } from '../components/ParticleCanvas';
 import { AiAgentServiceSection } from '../components/AiAgentServiceSection';
 import { MetaGoogleAdsCard } from '../components/MetaGoogleAdsCard';
-import { TopAdBanner } from '../components/TopAdBanner';
 import { 
   InteractiveRestaurantMockup, 
   InteractiveEcommerceMockup, 
   InteractiveHotelMockup 
 } from '../components/Mockups';
 import { LeadCaptureSection } from '../components/LeadCaptureSection';
-import { CyberChatbot } from '../components/CyberChatbot';
 import { Footer } from '../components/Footer';
+import { CyberChatbot } from '../components/CyberChatbot';
 
 export default function HomePage() {
   return (
@@ -20,10 +20,10 @@ export default function HomePage() {
       {/* Üst Duyuru Banners */}
       <TopAdBanner />
 
-      {/* Arka Plan Animasyonu */}
+      {/* Arka Plan Canvas Efekti */}
       <ParticleCanvas />
 
-      {/* Hero / Başlık */}
+      {/* Hero Bölümü */}
       <section className="relative z-10 pt-20 pb-16 px-4 text-center max-w-5xl mx-auto">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6">
           İşletmeniz İçin Hızlı, Güvenli ve <br />
@@ -49,10 +49,8 @@ export default function HomePage() {
         <InteractiveHotelMockup />
       </section>
 
-      {/* İletişim Formu */}
+      {/* Form & Alt Bileşenler */}
       <LeadCaptureSection />
-
-      {/* Sayfa Altı & Chatbot */}
       <Footer />
       <CyberChatbot />
     </main>
