@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import React, { useState, useEffect, useRef, FC, FormEvent, ChangeEvent } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
   Zap, 
   ArrowRight, 
-  Cpu, 
-  Flame, 
   CheckCircle2,
   Activity,
   Radio,
@@ -15,16 +14,11 @@ import {
   Utensils,
   ShoppingBag,
   Hotel,
-  Layers,
   Globe,
   X,
-  Target,
-  TrendingUp,
-  Gauge,
   Plus,
   ShoppingBasket,
   Calendar,
-  Terminal,
   Check,
   Mail,
   Send,
@@ -32,15 +26,48 @@ import {
   CheckSquare,
   Search as SearchIcon,
   Code,
-  MessageSquare,
   Bot,
-  User,
-  HelpCircle,
-  ShieldCheck,
-  Clock
+  LucideIcon
 } from 'lucide-react';
 
-const SERVICES_OVERVIEW = [
+// --- TYPE DEFINITIONS ---
+interface ServiceItem {
+  title: string;
+  desc: string;
+  icon: LucideIcon;
+  color: string;
+  features: string[];
+}
+
+interface QuestionItem {
+  id: string;
+  label: string;
+  answer: string;
+}
+
+interface DemoItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  path: string;
+  icon: LucideIcon;
+  badgeColor: string;
+  accentColor: string;
+  metrics: string;
+  mockupType: 'restaurant' | 'ecommerce' | 'hotel';
+  navItems: string[];
+}
+
+interface ChatMessage {
+  id: string;
+  sender: 'bot' | 'user';
+  text: string;
+  time: string;
+}
+
+// --- CONSTANTS ---
+const SERVICES_OVERVIEW: ServiceItem[] = [
   {
     title: 'Özel Web Tasarım & Geliştirme',
     desc: 'İşletmenize özel, Lighthouse %100 hızlı, mobil uyumlu ve yüksek dönüşüm odaklı modern web mimarileri.',
@@ -64,7 +91,7 @@ const SERVICES_OVERVIEW = [
   }
 ];
 
-const PRESET_QUESTIONS = [
+const PRESET_QUESTIONS: QuestionItem[] = [
   { id: '1', label: '🚀 Web sitenizi kaç günde kuruyorsunuz?', answer: 'Projelerimizin karmaşıklığına bağlı olarak anahtar teslim web sitelerini ortalama 5 ila 10 iş günü içerisinde yayına alıyoruz.' },
   { id: '2', label: '📈 SEO ile satışlarımı nasıl artırırsınız?', answer: 'Teknik altyapınızı Google standartlarına tamamen uyumlu hale getirerek, potansiyel müşterilerinizin sizi doğrudan arama sonuçlarında bulmasını sağlıyoruz.' },
   { id: '3', label: '💰 Fiyatlandırma politikanız nedir?', answer: 'Her işletmenin ihtiyacı farklı olduğundan, işletmenize özel analiz yaptıktan sonra bütçenize en uygun şeffaf fiyat teklifini sunuyoruz.' },
@@ -72,7 +99,7 @@ const PRESET_QUESTIONS = [
   { id: '5', label: '🎯 Reklam yönetiminde ROAS garantisi var mı?', answer: 'Meta ve Google reklamlarında nokta atışı hedef kitle kurguları ve düzenli optimizasyonlarla reklam harcama getirisinizi (ROAS) maksimuma çıkarıyoruz.' }
 ];
 
-const DEMO_LIST = [
+const DEMO_LIST: DemoItem[] = [
   {
     id: 'gurme-restoran',
     title: 'Gurme Restoran & Bistro',
@@ -114,10 +141,13 @@ const DEMO_LIST = [
   },
 ];
 
-function CyberChatbot() {
+// --- COMPONENTS ---
+
+const CyberChatbot: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Array<{ sender: 'bot' | 'user'; text: string; time: string }>>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { 
+      id: 'init',
       sender: 'bot', 
       text: 'Merhaba! Ben Nexus AI Asistanı. İşletmeniz için en uygun web mimarisi, SEO veya reklam stratejileri hakkında size nasıl yardımcı olabilirim?', 
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
@@ -142,15 +172,19 @@ function CyberChatbot() {
     if (!text.trim()) return;
 
     const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const newMessages = [...messages, { sender: 'user' as const, text, time: userTime }];
-    setMessages(newMessages);
+    const userMessage: ChatMessage = { id: Date.now().toString(), sender: 'user', text, time: userTime };
+    
+    setMessages(prev => [...prev, userMessage]);
     if (!textToSend) setInputValue('');
     setIsTyping(true);
 
     setTimeout(() => {
       let botReply = 'Talebiniz alınmıştır! Uzman ekibimiz bu konuda size detaylı bilgi vermek için hazır. Hemen hızlı teklif formunu doldurabilir veya doğrudan iletişime geçebilirsiniz.';
       
-      const matchedPreset = PRESET_QUESTIONS.find(q => q.label.toLowerCase().includes(text.toLowerCase().substring(0, 10)) || text.toLowerCase().includes(q.id));
+      const matchedPreset = PRESET_QUESTIONS.find(q => 
+        q.label.toLowerCase().includes(text.toLowerCase().substring(0, 10)) || text.toLowerCase().includes(q.id)
+      );
+
       if (matchedPreset) {
         botReply = matchedPreset.answer;
       } else if (text.toLowerCase().includes('fiyat') || text.toLowerCase().includes('ücret')) {
@@ -160,20 +194,22 @@ function CyberChatbot() {
       }
 
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages([...newMessages, { sender: 'bot', text: botReply, time: botTime }]);
+      const botMessage: ChatMessage = { id: (Date.now() + 1).toString(), sender: 'bot', text: botReply, time: botTime };
+      
+      setMessages(prev => [...prev, botMessage]);
       setIsTyping(false);
     }, 800);
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <aside aria-label="Nexus AI Asistan Chatbot" className="fixed bottom-6 right-6 z-50">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="w-[90vw] sm:w-[380px] h-[540px] rounded-3xl bg-slate-950 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] flex flex-col overflow-hidden backdrop-blur-2xl"
+            className="w-[90vw] sm:w-[380px] h-[540px] rounded-3xl bg-slate-950 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] flex flex-col overflow-hidden backdrop-blur-2xl mb-4"
           >
             {/* Chat Header */}
             <div className="p-4 bg-gradient-to-r from-slate-900 via-cyan-950/50 to-slate-900 border-b border-cyan-500/30 flex items-center justify-between">
@@ -185,26 +221,26 @@ function CyberChatbot() {
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-950 animate-pulse" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                     Nexus AI Asistanı <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                  </h4>
+                  </h3>
                   <p className="text-[10px] font-mono text-cyan-400">Çevrim içi • Anında Yanıt</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-                aria-label="Kapat"
+                aria-label="Sohbeti Kapat"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Chat Body / Messages */}
+            {/* Chat Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-mono">
-              {messages.map((msg, index) => (
+              {messages.map((msg) => (
                 <div
-                  key={index}
+                  key={msg.id}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div
@@ -230,7 +266,7 @@ function CyberChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Preset Questions Chips */}
+            {/* Presets */}
             <div className="px-3 py-2 bg-slate-900/80 border-t border-slate-800 overflow-x-auto flex gap-2 no-scrollbar">
               {PRESET_QUESTIONS.map((q) => (
                 <button
@@ -243,13 +279,13 @@ function CyberChatbot() {
               ))}
             </div>
 
-            {/* Chat Input */}
+            {/* Input */}
             <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Mesajınızı yazın veya hazır soru seçin..."
+                placeholder="Mesajınızı yazın..."
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono focus:outline-none focus:border-cyan-400 transition-colors"
               />
@@ -269,6 +305,8 @@ function CyberChatbot() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.92 }}
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-label="Nexus AI Asistanı Aç"
         className="relative px-5 py-4 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_30px_rgba(6,182,212,0.6)] flex items-center gap-2.5 group"
       >
         <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950 animate-ping" />
@@ -276,18 +314,18 @@ function CyberChatbot() {
         <Bot className="w-5 h-5 text-slate-950 group-hover:rotate-12 transition-transform" />
         <span>Nexus AI Asistanı</span>
       </motion.button>
-    </div>
+    </aside>
   );
-}
+};
 
-function LeadCaptureSection() {
+const LeadCaptureSection: FC = () => {
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [selectedService, setSelectedService] = useState('Özel Web Tasarım & Geliştirme');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
@@ -298,7 +336,7 @@ function LeadCaptureSection() {
   };
 
   return (
-    <div id="teklif-al" className="my-16 p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-slate-950 to-indigo-950/40 border border-cyan-500/40 relative overflow-hidden shadow-[0_0_60px_rgba(6,182,212,0.15)] text-left scroll-mt-28">
+    <section id="teklif-al" className="my-16 p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-slate-950 to-indigo-950/40 border border-cyan-500/40 relative overflow-hidden shadow-[0_0_60px_rgba(6,182,212,0.15)] text-left scroll-mt-28">
       <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-3xl mx-auto space-y-6 relative z-10">
@@ -324,7 +362,7 @@ function LeadCaptureSection() {
           >
             <CheckCircle2 className="w-6 h-6 shrink-0" />
             <div>
-              <b className="block text-white text-base">Tebrikler! Talebiniz Alındı.</b>
+              <strong className="block text-white text-base font-bold">Tebrikler! Talebiniz Alındı.</strong>
               Uzman ekibimiz seçtiğiniz hizmet doğrultusunda analiz yaparak sizinle iletişime geçecektir.
             </div>
           </motion.div>
@@ -359,7 +397,7 @@ function LeadCaptureSection() {
                   type="text"
                   placeholder="Web siteniz (örn: sirketiniz.com)"
                   value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setWebsite(e.target.value)}
                   className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-colors"
                 />
               </div>
@@ -370,7 +408,7 @@ function LeadCaptureSection() {
                   required
                   placeholder="E-posta adresiniz"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-colors"
                 />
               </div>
@@ -393,48 +431,48 @@ function LeadCaptureSection() {
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-cyan-400" /> Doğrudan uzman desteği</span>
         </div>
       </div>
-    </div>
+    </section>
   );
-}
+};
 
-function TopAdBanner() {
+const TopAdBanner: FC = () => {
   const [isVisible, setIsVisible] = useState(true);
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs font-mono py-2 px-4 relative z-50 shadow-lg">
+    <aside aria-label="Sponsorlu Duyuru" className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs font-mono py-2 px-4 relative z-50 shadow-lg">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-hidden truncate">
           <span className="px-2 py-0.5 rounded bg-black/30 border border-white/20 font-bold uppercase tracking-wider text-[10px] shrink-0">
             SPONSORLU
           </span>
           <span className="truncate">
-            🚀 <b>CloudEdge Pro:</b> İlk 100 kullanıcıya özel %50 indirimli bulut sunucu altyapısı!
+            🚀 <strong>CloudEdge Pro:</strong> İlk 100 kullanıcıya özel %50 indirimli bulut sunucu altyapısı!
           </span>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <a
+          <Link
             href="#teklif-al"
             className="underline font-bold hover:text-cyan-200 transition-colors hidden sm:inline"
           >
             Fırsatı Yakala &rarr;
-          </a>
+          </Link>
           <button 
             onClick={() => setIsVisible(false)}
             className="p-1 hover:bg-black/20 rounded transition-colors"
-            aria-label="Kapat"
+            aria-label="Duyuruyu Kapat"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
-}
+};
 
-function MetaGoogleAdsCard() {
+const MetaGoogleAdsCard: FC = () => {
   return (
-    <div className="my-12 p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-slate-950 via-blue-950/40 to-slate-950 border border-blue-500/40 relative overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.15)]">
+    <section className="my-12 p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-slate-950 via-blue-950/40 to-slate-950 border border-blue-500/40 relative overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.15)]">
       <div className="absolute -right-10 -bottom-10 w-56 h-56 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
       
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10 text-left">
@@ -447,7 +485,7 @@ function MetaGoogleAdsCard() {
             Reklam Bütçenizi Boşa Harcamayın, Doğru Kitleyle Satışa Dönüştürün
           </h3>
           <p className="text-slate-300 text-xs sm:text-sm font-light leading-relaxed">
-            Meta (Instagram & Facebook) and Google Ads kampanyalarınızı profesyonel veri analitiği, dönüşüm optimizasyonu ve nokta atışı hedef kitle kurgularıyla yöneterek yüksek ROAS elde edin.
+            Meta (Instagram & Facebook) ve Google Ads kampanyalarınızı profesyonel veri analitiği, dönüşüm optimizasyonu ve nokta atışı hedef kitle kurgularıyla yöneterek yüksek ROAS elde edin.
           </p>
           <div className="flex flex-wrap gap-4 text-xs font-mono text-cyan-300 pt-1">
             <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-400" /> Profesyonel Meta Pixel Kurulumu</span>
@@ -455,18 +493,18 @@ function MetaGoogleAdsCard() {
           </div>
         </div>
 
-        <a
+        <Link
           href="#teklif-al"
           className="px-7 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(59,130,246,0.5)] whitespace-nowrap shrink-0 hover:scale-105"
         >
           Reklam Teklifi Al
-        </a>
+        </Link>
       </div>
-    </div>
+    </section>
   );
-}
+};
 
-function ParticleCanvas() {
+const ParticleCanvas: FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -560,9 +598,9 @@ function ParticleCanvas() {
   }, []);
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-60" />;
-}
+};
 
-function InteractiveRestaurantMockup({ activeTab }: { activeTab: string }) {
+const InteractiveRestaurantMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
@@ -573,11 +611,9 @@ function InteractiveRestaurantMockup({ activeTab }: { activeTab: string }) {
   ];
 
   const toggleItem = (id: number) => {
-    if (selectedItems.includes(id)) {
-      setSelectedItems(selectedItems.filter((i) => i !== id));
-    } else {
-      setSelectedItems([...selectedItems, id]);
-    }
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const total = selectedItems.reduce((acc, id) => {
@@ -682,9 +718,9 @@ function InteractiveRestaurantMockup({ activeTab }: { activeTab: string }) {
       )}
     </div>
   );
-}
+};
 
-function InteractiveEcommerceMockup({ activeTab }: { activeTab: string }) {
+const InteractiveEcommerceMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
   const [cart, setCart] = useState<{ id: number; name: string; price: number; size: string }[]>([]);
   const [selectedSize, setSelectedSize] = useState('M');
 
@@ -695,7 +731,7 @@ function InteractiveEcommerceMockup({ activeTab }: { activeTab: string }) {
   ];
 
   const addToCart = (prod: { id: number; name: string; price: number }) => {
-    setCart([...cart, { ...prod, size: selectedSize }]);
+    setCart(prev => [...prev, { ...prod, size: selectedSize }]);
   };
 
   const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
@@ -775,12 +811,11 @@ function InteractiveEcommerceMockup({ activeTab }: { activeTab: string }) {
                 {cart.length} <span className="text-xs font-normal text-slate-400">Ürün</span>
               </div>
               <p className="text-xs text-slate-400 mt-2 font-mono">
-                Sepet Tutarı: <b className="text-white">₺{totalPrice}</b>
+                Sepet Tutarı: <strong className="text-white">₺{totalPrice}</strong>
               </p>
             </div>
 
             <button 
-              onClick={() => {}}
               className="w-full py-2.5 rounded-xl bg-pink-500 hover:bg-pink-400 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(236,72,153,0.3)]"
             >
               Sepeti Görüntüle & Öde
@@ -790,9 +825,9 @@ function InteractiveEcommerceMockup({ activeTab }: { activeTab: string }) {
       )}
     </div>
   );
-}
+};
 
-function InteractiveHotelMockup({ activeTab }: { activeTab: string }) {
+const InteractiveHotelMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
   const [nights, setNights] = useState(3);
   const [guests, setGuests] = useState(2);
   const [selectedSuite, setSelectedSuite] = useState('Infinity Pool Villa');
@@ -871,9 +906,9 @@ function InteractiveHotelMockup({ activeTab }: { activeTab: string }) {
       </div>
     </div>
   );
-}
+};
 
-function BenchmarkSimulator() {
+const BenchmarkSimulator: FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [progressOld, setProgressOld] = useState(0);
   const [progressNexus, setProgressNexus] = useState(0);
@@ -975,7 +1010,7 @@ function BenchmarkSimulator() {
               animate={{ opacity: 1, y: 0 }}
               className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono flex items-center gap-2"
             >
-              <Flame className="w-4 h-4 shrink-0" />
+              <Zap className="w-4 h-4 shrink-0" />
               <span>Yüksek Terk Etme Oranı: Kullanıcılar sayfa açılmadan ayrıldı!</span>
             </motion.div>
           )}
@@ -1029,22 +1064,24 @@ function BenchmarkSimulator() {
       </div>
     </div>
   );
-}
+};
 
-function LiveDemoShowcase() {
-  const [activeDemo, setActiveDemo] = useState(DEMO_LIST[0]);
-  const [mockupTab, setMockupTab] = useState(DEMO_LIST[0].navItems[0]);
+const LiveDemoShowcase: FC = () => {
+  const [activeDemo, setActiveDemo] = useState<DemoItem>(DEMO_LIST[0]);
+  const [mockupTab, setMockupTab] = useState<string>(DEMO_LIST[0].navItems[0]);
 
-  const handleDemoChange = (demo: typeof DEMO_LIST[0]) => {
+  const handleDemoChange = (demo: DemoItem) => {
     setActiveDemo(demo);
     setMockupTab(demo.navItems[0]);
   };
+
+  const Icon = activeDemo.icon;
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {DEMO_LIST.map((demo) => {
-          const Icon = demo.icon;
+          const DemoIcon = demo.icon;
           const isSelected = activeDemo.id === demo.id;
 
           return (
@@ -1061,7 +1098,7 @@ function LiveDemoShowcase() {
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`p-2.5 rounded-xl border ${demo.badgeColor}`}>
-                  <Icon className="w-5 h-5" />
+                  <DemoIcon className="w-5 h-5" />
                 </div>
                 {isSelected && (
                   <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold animate-pulse">
@@ -1096,7 +1133,7 @@ function LiveDemoShowcase() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a
+            <Link
               href={activeDemo.path}
               target="_blank"
               rel="noopener noreferrer"
@@ -1104,7 +1141,7 @@ function LiveDemoShowcase() {
             >
               <span>Ayrı Sekmede Aç</span>
               <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -1125,7 +1162,7 @@ function LiveDemoShowcase() {
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80 text-xs font-medium text-slate-300">
                 <div className="flex items-center gap-2 font-bold text-white text-sm">
-                  <activeDemo.icon className={`w-4 h-4 ${activeDemo.accentColor}`} />
+                  <Icon className={`w-4 h-4 ${activeDemo.accentColor}`} />
                   <span>{activeDemo.subtitle}</span>
                 </div>
 
@@ -1169,20 +1206,21 @@ function LiveDemoShowcase() {
               KLASÖR LOKASYONU: <code className="text-cyan-400">src/app{activeDemo.path}</code>
             </span>
 
-            <a
+            <Link
               href={activeDemo.path}
               className="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:scale-105 transition-all flex items-center justify-center gap-2"
             >
               <span>Ayrı Sayfada Test Et</span>
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </Link>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
+// --- MAIN PAGE COMPONENT ---
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#02050e] text-slate-100 font-sans selection:bg-cyan-400 selection:text-black overflow-x-hidden relative scroll-smooth">
@@ -1190,13 +1228,14 @@ export default function Home() {
       <TopAdBanner />
       <CyberChatbot />
 
+      {/* Decorative Lights */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[25%] w-[600px] h-[600px] bg-cyan-600/15 rounded-full blur-[180px] animate-pulse" />
         <div className="absolute top-[50%] right-[-10%] w-[700px] h-[700px] bg-indigo-600/10 rounded-full blur-[200px]" />
         <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] bg-fuchsia-600/10 rounded-full blur-[160px]" />
       </div>
 
-      {/* Geliştirilmiş Üst Kısım / Header */}
+      {/* Header */}
       <header className="fixed top-12 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-6xl">
         <div className="backdrop-blur-2xl bg-slate-950/80 border border-cyan-500/40 rounded-2xl px-6 py-4 flex items-center justify-between shadow-[0_0_40px_rgba(0,0,0,0.9)] relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
@@ -1212,28 +1251,30 @@ export default function Home() {
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-xs font-mono tracking-wider text-slate-300">
-            <a href="#hizmetler" className="hover:text-cyan-400 transition-colors">Hizmetler</a>
-            <a href="#demolar" className="hover:text-cyan-400 transition-colors">Canlı Demolar</a>
-            <a href="#demo" className="hover:text-cyan-400 transition-colors">Yükleme Testi</a>
+            <Link href="#hizmetler" className="hover:text-cyan-400 transition-colors">Hizmetler</Link>
+            <Link href="#demolar" className="hover:text-cyan-400 transition-colors">Canlı Demolar</Link>
+            <Link href="#demo" className="hover:text-cyan-400 transition-colors">Yükleme Testi</Link>
           </nav>
 
           <div className="flex items-center gap-4">
             <span className="hidden lg:flex items-center gap-1.5 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
               <Activity className="w-3 h-3 animate-pulse" /> SİSTEM: 100/100
             </span>
-            <a 
+            <Link 
               href="#teklif-al" 
               className="relative group overflow-hidden px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black text-xs uppercase tracking-wider transition-all hover:shadow-[0_0_25px_rgba(6,182,212,0.8)]"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Radio className="w-3.5 h-3.5 animate-pulse" /> Siteni Dönüştür
               </span>
-            </a>
+            </Link>
           </div>
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="relative z-10 pt-48 pb-24 px-4 sm:px-6 max-w-6xl mx-auto space-y-36">
+        
         {/* Hero Section */}
         <section className="text-center space-y-10 relative">
           <motion.div 
@@ -1242,114 +1283,27 @@ export default function Home() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 border border-cyan-500/40 backdrop-blur-md text-cyan-400 text-xs font-mono tracking-widest uppercase shadow-[0_0_20px_rgba(6,182,212,0.2)]"
           >
             <Sparkles className="w-4 h-4 text-cyan-400 animate-spin" />
-            <span>SİBERNETİK WEB MİMARİSİ V4.0 • YENİ NESİL ÇÖZÜMLER</span>
+            <span>WEB MİMARİSİ • YENİ NESİL ÇÖZÜMLER</span>
           </motion.div>
 
-          <style jsx>{`
-            .interactive-hero-text {
-              perspective: 1000px;
-              cursor: pointer;
-            }
-            .hero-text-inner {
-              position: relative;
-              width: 100%;
-              transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-              transform-style: preserve-3d;
-            }
-            .interactive-hero-text:hover .hero-text-inner {
-              transform: rotateX(180deg);
-            }
-            .hero-text-front, .hero-text-back {
-              backface-visibility: hidden;
-              width: 100%;
-            }
-            .hero-text-back {
-              position: absolute;
-              top: 0;
-              left: 0;
-              transform: rotateX(180deg);
-            }
-
-            .cyber-btn-primary {
-              position: relative;
-              background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-              color: #02050e;
-              overflow: hidden;
-              transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .cyber-btn-primary::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: -100%;
-              width: 100%;
-              height: 100%;
-              background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-              transition: 0.5s;
-            }
-            .cyber-btn-primary:hover::before {
-              left: 100%;
-            }
-            .cyber-btn-primary:hover {
-              box-shadow: 0 0 35px rgba(6, 182, 212, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.5);
-              transform: translateY(-3px) scale(1.02);
-            }
-
-            .cyber-btn-secondary {
-              position: relative;
-              background: rgba(15, 23, 42, 0.8);
-              border: 1px solid rgba(6, 182, 212, 0.4);
-              color: #22d3ee;
-              overflow: hidden;
-              transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .cyber-btn-secondary::after {
-              content: '';
-              position: absolute;
-              inset: 0;
-              background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2));
-              opacity: 0;
-              transition: opacity 0.3s ease;
-            }
-            .cyber-btn-secondary:hover::after {
-              opacity: 1;
-            }
-            .cyber-btn-secondary:hover {
-              border-color: #06b6d4;
-              box-shadow: 0 0 30px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(6, 182, 212, 0.2);
-              color: #ffffff;
-              transform: translateY(-3px) scale(1.02);
-            }
-
-            .cyber-btn-accent {
-              position: relative;
-              background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-              color: #ffffff;
-              overflow: hidden;
-              transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .cyber-btn-accent:hover {
-              box-shadow: 0 0 35px rgba(236, 72, 153, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.4);
-              transform: translateY(-3px) scale(1.02);
-            }
-          `}</style>
-
-          <div className="interactive-hero-text mb-6">
-            <div className="hero-text-inner">
-              <div className="hero-text-front">
+          <div className="group [perspective:1000px] cursor-pointer mb-6">
+            <div className="relative w-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateX(180deg)]">
+              {/* Front Side */}
+              <div className="[backface-visibility:hidden]">
                 <motion.h1 
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
                   className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight leading-[0.92] text-white uppercase"
                 >
-                  SİTENİZ YAŞIYOR MU, <br />
+                  WEB SİTENİZ YAŞIYOR MU, <br />
                   <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-fuchsia-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(6,182,212,0.5)]">
                     YOKSA SADECE DURUYOR MU?
                   </span>
                 </motion.h1>
               </div>
-              <div className="hero-text-back">
+              {/* Back Side */}
+              <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateX(180deg)]">
                 <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight leading-[0.92] text-white uppercase">
                   DİJİTALDE SINIRLARI AŞIN, <br />
                   <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(236,72,153,0.5)]">
@@ -1375,39 +1329,39 @@ export default function Home() {
             transition={{ delay: 0.3 }}
             className="flex flex-wrap items-center justify-center gap-4 pt-4"
           >
-            <a 
+            <Link 
               href="#demolar"
-              className="cyber-btn-secondary px-7 py-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 backdrop-blur-xl group"
+              className="relative overflow-hidden px-7 py-4 rounded-2xl bg-slate-900/80 border border-cyan-500/40 text-cyan-300 font-black text-xs uppercase tracking-wider flex items-center gap-2.5 backdrop-blur-xl group transition-all duration-300 hover:border-cyan-400 hover:text-white hover:-translate-y-1 hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Globe className="w-4 h-4 text-cyan-400 group-hover:rotate-180 transition-transform duration-500" />
                 Canlı Demoları Gör
               </span>
-            </a>
+            </Link>
 
-            <a 
+            <Link 
               href="#teklif-al"
-              className="cyber-btn-primary px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 shadow-xl group"
+              className="relative overflow-hidden px-8 py-4 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2.5 shadow-xl group transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-[0_0_35px_rgba(6,182,212,0.8)]"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-slate-950 group-hover:scale-125 transition-transform duration-300 fill-current" />
                 Hemen Teklif Al
               </span>
-            </a>
+            </Link>
 
-            <a 
+            <Link 
               href="#hizmetler"
-              className="cyber-btn-accent px-7 py-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 shadow-xl group"
+              className="relative overflow-hidden px-7 py-4 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2.5 shadow-xl group transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-[0_0_35px_rgba(236,72,153,0.7)]"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 group-hover:rotate-45 transition-transform duration-300" />
                 Hizmetleri İncele
               </span>
-            </a>
+            </Link>
           </motion.div>
         </section>
 
-        {/* Geliştirilmiş Kapsamlı Hizmetler Bölümü */}
+        {/* Services Section */}
         <section id="hizmetler" className="space-y-8 scroll-mt-28">
           <div className="text-center space-y-3">
             <h2 className="text-xs font-mono text-cyan-400 tracking-widest uppercase">// NELER SUNUYORUZ?</h2>
@@ -1445,7 +1399,7 @@ export default function Home() {
 
                   <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
                     <span className="text-cyan-400 flex items-center gap-1"><CheckSquare className="w-3.5 h-3.5" /> Anahtar Teslim</span>
-                    <a href="#teklif-al" className="text-slate-300 hover:text-cyan-400 transition-colors font-bold">Teklif İste &rarr;</a>
+                    <Link href="#teklif-al" className="text-slate-300 hover:text-cyan-400 transition-colors font-bold">Teklif İste &rarr;</Link>
                   </div>
                 </motion.div>
               );
@@ -1453,11 +1407,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Canlı Demolar */}
+        {/* Live Demos Section */}
         <section id="demolar" className="space-y-8 scroll-mt-28">
           <div className="text-center space-y-3">
             <h2 className="text-xs font-mono text-cyan-400 tracking-widest uppercase">// LIVE INTERACTIVE DEMOS</h2>
-            <p className="text-3xl sm:text-4xl font-extrabold text-white">İnteraktif Sektörel Simülatör</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-white">İnteraktif Sektörel Simülatör</h3>
             <p className="text-slate-400 text-sm max-w-lg mx-auto font-light">
               Aşağıdaki demolar üzerinden sitenize eklenebilecek özellikleri canlı olarak deneyimleyebilirsiniz.
             </p>
@@ -1466,13 +1420,14 @@ export default function Home() {
           <LiveDemoShowcase />
         </section>
 
+        {/* Ads Promotion Card */}
         <MetaGoogleAdsCard />
 
-        {/* Canlı Benchmark Testi */}
+        {/* Benchmark Section */}
         <section id="demo" className="space-y-8">
           <div className="text-center space-y-3">
             <h2 className="text-xs font-mono text-cyan-400 tracking-widest uppercase">// LIVE BENCHMARK SIMULATOR</h2>
-            <p className="text-3xl sm:text-4xl font-extrabold text-white">Canlı Performans & Yükleme Testi</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-white">Canlı Performans & Yükleme Testi</h3>
             <p className="text-slate-400 text-sm max-w-lg mx-auto font-light">
               İki mimari arasındaki tepki süresini ve kullanıcı kayıp oranını canlı simüle edin.
             </p>
@@ -1481,6 +1436,7 @@ export default function Home() {
           <BenchmarkSimulator />
         </section>
 
+        {/* Lead Form */}
         <LeadCaptureSection />
       </main>
 
@@ -1500,16 +1456,16 @@ export default function Home() {
           </div>
 
           <div className="space-y-2 font-mono text-xs">
-            <h5 className="text-white font-bold uppercase tracking-wider mb-3">Hızlı Bağlantılar</h5>
+            <h4 className="text-white font-bold uppercase tracking-wider mb-3">Hızlı Bağlantılar</h4>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#hizmetler" className="hover:text-cyan-400 transition-colors">Hizmetlerimiz</a></li>
-              <li><a href="#demolar" className="hover:text-cyan-400 transition-colors">Canlı Demolar</a></li>
-              <li><a href="#teklif-al" className="hover:text-cyan-400 transition-colors">Teklif Al</a></li>
+              <li><Link href="#hizmetler" className="hover:text-cyan-400 transition-colors">Hizmetlerimiz</Link></li>
+              <li><Link href="#demolar" className="hover:text-cyan-400 transition-colors">Canlı Demolar</Link></li>
+              <li><Link href="#teklif-al" className="hover:text-cyan-400 transition-colors">Teklif Al</Link></li>
             </ul>
           </div>
 
           <div className="space-y-2 font-mono text-xs">
-            <h5 className="text-white font-bold uppercase tracking-wider mb-3">İletişim</h5>
+            <h4 className="text-white font-bold uppercase tracking-wider mb-3">İletişim</h4>
             <p className="text-slate-400">İstanbul, Türkiye</p>
             <p className="text-cyan-400 font-bold">iletisim@nexus-labs.io</p>
           </div>
