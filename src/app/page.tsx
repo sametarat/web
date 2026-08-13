@@ -9,7 +9,6 @@ import {
   ArrowRight, 
   CheckCircle2,
   Activity,
-  Radio,
   X,
   Plus,
   ShoppingBasket,
@@ -18,7 +17,6 @@ import {
   Mail,
   Send,
   Megaphone,
-  CheckSquare,
   Search as SearchIcon,
   Code,
   Bot,
@@ -26,16 +24,14 @@ import {
   Utensils,
   ShoppingBag,
   Hotel,
-  Globe,
-  ExternalLink,
-  LucideIcon
+  Globe
 } from 'lucide-react';
 
 // --- TYPE DEFINITIONS ---
 interface ServiceItem {
   title: string;
   desc: string;
-  icon: LucideIcon;
+  icon: React.ElementType;
   color: string;
   features: string[];
 }
@@ -52,7 +48,7 @@ interface DemoItem {
   subtitle: string;
   category: string;
   path: string;
-  icon: LucideIcon;
+  icon: React.ElementType;
   badgeColor: string;
   accentColor: string;
   metrics: string;
