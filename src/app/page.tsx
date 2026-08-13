@@ -1,9 +1,9 @@
 'use client';
 
-// Relative path (../components/) kullanılarak import alias problemleri tamamen aşılır:
+// Named ve Default Import'lar ayrıştırıldı
 import { TopAdBanner } from '../components/TopAdBanner';
 import { ParticleCanvas } from '../components/ParticleCanvas';
-import { AiAgentServiceSection } from '../components/AiAgentServiceSection';
+import AiAgentServiceSection from '../components/AiAgentServiceSection'; // Süslü parantez kaldırıldı!
 import { MetaGoogleAdsCard } from '../components/MetaGoogleAdsCard';
 import { 
   InteractiveRestaurantMockup, 
@@ -17,7 +17,7 @@ import { CyberChatbot } from '../components/CyberChatbot';
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 relative overflow-hidden font-sans">
-      {/* Üst Duyuru Banners */}
+      {/* Üst Duyuru Banner */}
       <TopAdBanner />
 
       {/* Arka Plan Canvas Efekti */}
