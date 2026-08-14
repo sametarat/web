@@ -2,6 +2,9 @@
 
 import React, { useState, useMemo, useCallback, useTransition } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { SafeImage } from '@/components/SafeImage';
+import { whatsAppLink } from '@/lib/site';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingBag, 
@@ -212,7 +215,7 @@ export default function AvantGardeFashionPage() {
     const text = encodeURIComponent(
       "Merhaba, M O D A Atelier Stil Danışmanlığı hattı üzerinden özel sipariş ve koleksiyon tavsiyesi almak istiyorum."
     );
-    window.open(`https://wa.me/905550000000?text=${text}`, '_blank', 'noopener,noreferrer');
+    window.open(whatsAppLink(decodeURIComponent(text)), '_blank', 'noopener,noreferrer');
   }, []);
 
   return (
@@ -275,10 +278,15 @@ export default function AvantGardeFashionPage() {
 
       {/* --- HERO BANNER --- */}
       <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden border-b border-neutral-800/60">
-        <img 
-          src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=80" 
-          alt="Fashion Hero" 
-          className="absolute inset-0 w-full h-full object-cover opacity-30 scale-105"
+        <SafeImage
+          accent="text-amber-400"
+          src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=80"
+          alt=""
+          aria-hidden="true"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-30 scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#030305] via-[#030305]/40 to-[#030305]" />
         
@@ -392,12 +400,13 @@ export default function AvantGardeFashionPage() {
                 <div>
                   {/* Ürün Görseli */}
                   <div className="relative aspect-[3/4] bg-neutral-900 overflow-hidden">
-                    <img 
-                      src={product.image} 
+                    <SafeImage
+                      accent="text-amber-400"
+                      src={product.image}
                       alt={product.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                     />
 
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent opacity-80" />
@@ -498,7 +507,13 @@ export default function AvantGardeFashionPage() {
               </button>
 
               <div className="aspect-[3/4] bg-neutral-900 relative">
-                <img src={quickViewProduct.image} alt={quickViewProduct.name} className="w-full h-full object-cover" />
+                <Image
+                  src={quickViewProduct.image}
+                  alt={quickViewProduct.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="object-cover"
+                />
               </div>
 
               <div className="p-8 flex flex-col justify-between space-y-6">
@@ -616,7 +631,14 @@ export default function AvantGardeFashionPage() {
                   ) : (
                     cart.map((item, idx) => (
                       <div key={idx} className="flex gap-4 p-3.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80">
-                        <img src={item.image} alt={item.name} className="w-20 h-24 object-cover rounded-xl bg-neutral-900" />
+                        <SafeImage
+                          accent="text-amber-400"
+                          src={item.image}
+                          alt={item.name}
+                          width={80}
+                          height={96}
+                          className="h-24 w-20 rounded-xl bg-neutral-900 object-cover"
+                        />
                         <div className="flex-1 flex flex-col justify-between py-1">
                           <div>
                             <h4 className="text-xs font-bold font-serif text-white">{item.name}</h4>
@@ -682,7 +704,14 @@ export default function AvantGardeFashionPage() {
             className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 cursor-pointer"
           >
             <div className="relative max-w-4xl w-full max-h-[85vh] rounded-3xl overflow-hidden border border-neutral-800">
-              <img src={selectedImage} alt="Ultra Detail" className="w-full h-full object-contain" />
+              <Image
+                src={selectedImage}
+                alt="Seçilen ürünün büyütülmüş görseli"
+                width={1600}
+                height={2000}
+                sizes="(max-width: 1024px) 100vw, 896px"
+                className="h-full w-full object-contain"
+              />
               <button 
                 onClick={() => setSelectedImage(null)}
                 aria-label="Kapat"

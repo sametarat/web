@@ -1,99 +1,198 @@
-import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, tool } from 'ai';
+import { createGroq } from '@ai-sdk/groq';
+import { convertToModelMessages, streamText, tool, stepCountIs, type UIMessage } from 'ai';
 import { z } from 'zod';
+import { SITE } from '@/lib/site';
+import { sendLeadEmail, isDuplicateLead, extractContact } from '@/lib/leads';
 
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Streaming yanıtlar için uzun çalışma süresi (Vercel).
+export const maxDuration = 30;
+
+/**
+ * Groq, Llama modellerini çok düşük gecikmeyle sunuyor ve cömert bir ücretsiz
+ * kotası var. Anahtar: https://console.groq.com/keys → .env.local'de GROQ_API_KEY.
+ *
+ * Sağlayıcı değiştirmek istersen sadece bu iki satır değişir; prompt, araç ve
+ * istemci tarafı aynı kalır (AI SDK sağlayıcıdan bağımsız çalışır).
+ */
+const MODEL = 'llama-3.3-70b-versatile';
+
+const saveLeadSchema = z.object({
+  fullName: z.string().describe('Müşterinin adı soyadı'),
+  contactInfo: z
+    .string()
+    .describe('Müşterinin telefon numarası veya e-posta adresi'),
+  projectType: z
+    .string()
+    .describe('İlgilendiği hizmet (Örn: E-ticaret, Kurumsal Site, Özel Yazılım)'),
+  notes: z
+    .string()
+    .optional()
+    .describe('Müşterinin bahsettiği özel detaylar veya beklentiler'),
 });
 
-// Tool parametreleri için arayüz (Interface) tanımı
-interface SaveQualifiedLeadArgs {
-  fullName: string;
-  contactInfo: string;
-  projectType: string;
-  notes?: string;
+const SYSTEM_PROMPT = `
+Sen ${SITE.name} adlı web mimarisi, özel yazılım ve dijital dönüşüm ajansının kıdemli satış ve teknik danışmanısın.
+
+==================================================
+KURUMSAL BİLGİ VE HİZMET KATALOĞU
+==================================================
+1. HİZMETLERİMİZ:
+   - Kurumsal Web Tasarım & Geliştirme (Next.js, React, Tailwind CSS ile yüksek hızlı, SEO uyumlu ve mobil odaklı siteler).
+   - E-Ticaret Sistemleri (Yüksek dönüşüm odaklı, ödeme entegrasyonlu, gelişmiş stok yönetimli platformlar).
+   - Özel Web/Mobil Yazılım & Mimariler (SaaS projeleri, ERP/CRM çözümleri, mobil uygulamalar).
+   - Dijital Strateji & SEO (Teknik SEO, sayfa hızı optimizasyonu, dönüşüm optimizasyonu).
+   - Meta & Google reklam yönetimi (ROAS odaklı kurgu ve raporlama).
+
+2. SÜREÇ VE TESLİM:
+   - Keşif & analiz (2-4 gün) → tasarım & prototip (3-7 gün) → geliştirme (1-4 hafta) → yayın & devir (1-2 gün).
+   - Kurumsal siteler ortalama 1-3 hafta, e-ticaret ve özel projeler 3-6 hafta.
+   - Kaynak kod müşteriye devredilir, fiyat kapsam onayından sonra sabittir.
+
+==================================================
+DAVRANIŞ KURALLARI
+==================================================
+1. SADECE TÜRKÇE yanıt ver. Kısa tut — en fazla 3-4 cümle.
+2. Yanıtların net, kendinden emin ve profesyonel olsun.
+3. Yukarıdaki katalogda olmayan bir konuda kesin bilgi UYDURMA; "ekibimiz netleştirsin" deyip iletişim bilgisi iste.
+4. ASLA net fiyat veya rakam verme. Fiyat sorulduğunda projeye özel teklif çıkardığını söyle.
+5. Müşteri fiyat, teklif veya süreç sorduğunda harici bir forma yönlendirme yapma;
+   "Size özel doğru teklifi çıkarabilmemiz için ad-soyad ve telefon/e-posta bilginizi alabilir miyim?" diye sor.
+6. Müşteri ad ve iletişim bilgisini paylaştığında, sana verilen kaydetme aracını kullan.
+   Aracı gerçekten çalıştır — çağrıyı yanıt metnine YAZMA, hiçbir zaman <function> gibi
+   etiketler veya JSON üretme. Kullanıcı yalnızca normal Türkçe cümleler görmeli.
+7. Aynı kişi için aracı bir kereden fazla kullanma.
+8. İletişim bilgisi henüz gelmediyse aracı kullanma; önce bilgiyi iste.
+`.trim();
+
+/** Sağlayıcı hatalarını tek satırda, gürültüsüz logla. */
+function logProviderError(error: unknown) {
+  const err = error as { name?: string; message?: string; statusCode?: number };
+  console.error(
+    `[bot] ${err?.name ?? 'Error'}${err?.statusCode ? ` (${err.statusCode})` : ''}: ${
+      err?.message ?? String(error)
+    }`,
+  );
+}
+
+/** Bir UIMessage'ın metin içeriğini birleştirir. */
+function textOf(message: UIMessage): string {
+  return (message.parts ?? [])
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map((part) => part.text)
+    .join(' ');
+}
+
+/**
+ * Konuşmada iletişim bilgisi geçtiyse lead'i modelden bağımsız olarak kaydeder.
+ * Bilinçli olarak `await` edilmiyor — yanıt akışını geciktirmemeli.
+ */
+async function captureLeadFromConversation(messages: UIMessage[]) {
+  const userTexts = messages.filter((m) => m.role === 'user').map(textOf);
+  if (userTexts.length === 0) return;
+
+  const contact = extractContact(userTexts[userTexts.length - 1]);
+  if (!contact || isDuplicateLead(contact)) return;
+
+  const transcript = userTexts.slice(-6).join(' | ').slice(0, 1500);
+  const result = await sendLeadEmail({
+    fullName: 'Chatbot ziyaretçisi',
+    contactInfo: contact,
+    projectType: 'Chatbot üzerinden gelen talep',
+    notes: `Ziyaretçinin mesajları: ${transcript}`,
+    source: 'chatbot',
+  });
+
+  if (!result.delivered) {
+    console.error(`[bot] Otomatik lead yakalama gönderilemedi (${result.reason}): ${contact}`);
+  } else {
+    console.log(`[bot] Lead otomatik yakalandı: ${contact}`);
+  }
 }
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  if (!process.env.GROQ_API_KEY) {
+    console.error('[bot] GROQ_API_KEY tanımlı değil.');
+    return Response.json(
+      {
+        error:
+          'Asistan şu anda devre dışı. Lütfen iletişim formundan yazın, aynı hızda dönüş yapıyoruz.',
+      },
+      { status: 503 },
+    );
+  }
+
+  let messages: UIMessage[];
+  try {
+    const body = await req.json();
+    if (!Array.isArray(body?.messages)) {
+      return Response.json({ error: 'Geçersiz istek gövdesi.' }, { status: 400 });
+    }
+    // Basit kötüye kullanım koruması: aşırı uzun konuşmaları kırp.
+    messages = body.messages.slice(-30) as UIMessage[];
+  } catch {
+    return Response.json({ error: 'Geçersiz JSON.' }, { status: 400 });
+  }
+
+  // --- Emniyet ağı ---------------------------------------------------------
+  // Model aracı çağırmayı atlarsa ya da çağrıyı metin olarak yazarsa lead kaybolur.
+  // Kullanıcının son mesajında iletişim bilgisi varsa modelden bağımsız olarak
+  // bildirimi biz gönderiyoruz. Mükerrer bildirim `isDuplicateLead` ile engelleniyor.
+  void captureLeadFromConversation(messages);
+
+  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
   const result = streamText({
-    model: openai('gpt-4o-mini'),
-    // maxSteps doğrudan streamText objesinin kök seviyesinde kalmalıdır
-    maxSteps: 3,
-    system: `
-      Sen NEXUS//LABS web mimarisi, özel yazılım ve dijital dönüşüm ajansının kıdemli satış ve teknik danışmanısın.
-
-      ==================================================
-      🏢 KURUMSAL BİLGİ VE HİZMET KATALOĞU
-      ==================================================
-      1. HİZMETLERİMİZ:
-         - Kurumsal Web Tasarım & Geliştirme (Next.js 16, React 19, Tailwind CSS ile yüksek hızlı, SEO uyumlu ve mobil odaklı siteler).
-         - E-Ticaret Sistemleri (Yüksek dönüşüm odaklı, ödeme entegrasyonlu, gelişmiş stok yönetimli platformlar).
-         - Özel Web/Mobil Yazılım & Mimariler (SaaS projeleri, ERP/CRM çözümleri, mobil uygulamalar).
-         - Dijital Strateji & SEO (Arama motoru optimizasyonu, sayfa hızı skorları (Lighthouse 90+), dönüşüm optimizasyonu).
-
-      2. NEDEN NEXUS//LABS?
-         - Eski nesil yavaş sistemler (WordPress vb.) yerine en son web teknolojilerini (Next.js App Router, Turbopack) kullanırız.
-         - Sayfa yüklenme hızlarımız ultra yüksektir (Sub-second loading).
-         - Güvenli ve modern mimariler uygularız.
-         - Tamamen markaya özel, modern ve responsive tasarımlar hazırlarız.
-
-      3. TEKLİF VE SÜREÇ SİSTEMİ:
-         - Projeler analiz, tasarım, geliştirme, test ve canlıya alma aşamalarıyla yürütülür.
-         - Ortalama teslim süreleri: Kurumsal siteler için 1-3 hafta, E-ticaret & Özel projeler için 3-6 haftadır.
-
-      ==================================================
-      🎯 MÜŞTERİ YÖNLENDİRME STRATEJİSİ
-      ==================================================
-      1. Ziyaretçi soru sorduğunda yukarıdaki bilgilerden faydalanarak net, kendinden emin ve profesyonel yanıtlar ver.
-      2. Müşteri fiyat, teklif veya süreç sorduğunda:
-         - Asla harici bir forma yönlendirme yapma!
-         - "Size özel doğru teklifi ve proje takvimini çıkarabilmemiz için Ad-Soyad ve Telefon/E-posta bilgilerinizi alabilir miyim?" şeklinde bilgi iste.
-      3. Müşteri iletişim bilgilerini paylaştığı an DERHAL 'saveQualifiedLead' fonksiyonunu çalıştır.
-    `,
-    messages,
+    model: groq(MODEL),
+    system: SYSTEM_PROMPT,
+    messages: await convertToModelMessages(messages),
+    // Araç çağrısından sonra modelin kullanıcıya cevap yazabilmesi için.
+    stopWhen: stepCountIs(3),
     tools: {
       saveQualifiedLead: tool({
-        description: 'Potansiyel müşterinin proje detaylarını ve iletişim bilgilerini kaydeder.',
-        parameters: z.object({
-          fullName: z.string().describe('Müşterinin adı soyadı'),
-          contactInfo: z.string().describe('Müşterinin telefon numarası veya e-posta adresi'),
-          projectType: z.string().describe('İlgilendiği hizmet (Örn: E-ticaret, Kurumsal Site, Özel Yazılım)'),
-          notes: z.string().optional().describe('Müşterinin bahsettiği özel detaylar veya beklentiler'),
-        }),
-        execute: async ({ fullName, contactInfo, projectType, notes }: SaveQualifiedLeadArgs) => {
-          console.log('🚀 --- YENİ MÜŞTERİ BİLGİSİ YAKALANDI ---');
-          console.log({ fullName, contactInfo, projectType, notes });
-
-          // WhatsApp Bildirim Entegrasyonu (İsteğe bağlı CallMeBot veya Webhook)
-          const myPhoneNumber = "905XXXXXXXXX"; // Telefon numaranız
-          const apiKey = "CALLMEBOT_API_KEY"; // CallMeBot API Anahtarınız
-
-          if (apiKey !== "CALLMEBOT_API_KEY") {
-            const whatsappMessage = encodeURIComponent(
-              `🔥 *YENİ MÜŞTERİ BİLGİSİ YAKALANDI!*\n\n` +
-              `👤 *İsim:* ${fullName}\n` +
-              `📞 *İletişim:* ${contactInfo}\n` +
-              `💼 *Hizmet:* ${projectType}\n` +
-              `📝 *Notlar:* ${notes || 'Belirtilmedi'}`
-            );
-
-            try {
-              await fetch(`https://api.callmebot.com/whatsapp.php?phone=${myPhoneNumber}&text=${whatsappMessage}&apikey=${apiKey}`);
-            } catch (error) {
-              console.error('WhatsApp bildirimi gönderilemedi:', error);
-            }
+        description:
+          'Potansiyel müşterinin proje detaylarını ve iletişim bilgilerini kaydeder ve satış ekibine e-posta ile bildirir.',
+        // AI SDK v5+ bu alanı 'inputSchema' olarak bekliyor ('parameters' değil).
+        inputSchema: saveLeadSchema,
+        execute: async ({ fullName, contactInfo, projectType, notes }) => {
+          // Emniyet ağı aynı kişiyi zaten bildirdiyse ikinci e-postayı gönderme.
+          if (isDuplicateLead(contactInfo)) {
+            return {
+              status: 'success',
+              message: `${fullName} için bilgiler zaten kaydedildi. Ekibimiz iletişime geçecek.`,
+            };
           }
 
+          const delivery = await sendLeadEmail({
+            fullName,
+            contactInfo,
+            projectType,
+            notes,
+            source: 'chatbot',
+          });
+
+          if (!delivery.delivered) {
+            console.error(
+              `[bot] Lead e-postası gönderilemedi (${delivery.reason}): ${fullName} / ${contactInfo}`,
+            );
+          }
+
+          // Lead her hâlükârda loglandı; model kullanıcıya olumlu dönsün.
           return {
             status: 'success',
-            message: `Harika! ${fullName} Bey/Hanım, proje detaylarınızı ve iletişim bilgilerinizi kaydettim. Ekibimiz en kısa sürede sizinle iletişime geçecektir.`,
+            message: `${fullName} için bilgiler kaydedildi. Ekibimiz en kısa sürede ${contactInfo} üzerinden iletişime geçecek.`,
           };
         },
       }),
     },
   });
 
-  return result.toDataStreamResponse();
+  // useChat (AI SDK v5+) UI message stream bekler; toTextStreamResponse ile uyumsuzdur.
+  return result.toUIMessageStreamResponse({
+    // Varsayılanda hata istemciye "An error occurred" olarak gider ve stream sessizce biter.
+    // Ziyaretçiye Türkçe, anlaşılır bir mesaj gösteriyoruz; detay sunucu logunda kalıyor.
+    onError: (error) => {
+      logProviderError(error);
+      return 'Asistana şu anda ulaşılamıyor. Lütfen birazdan tekrar deneyin veya iletişim formunu kullanın.';
+    },
+  });
 }

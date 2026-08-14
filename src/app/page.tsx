@@ -1,12 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, useRef, FC, FormEvent, ChangeEvent, useMemo, useCallback } from 'react';
+import React, { useState, FC, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, 
-  Zap, 
-  ArrowRight, 
+import CyberChatbot from '@/components/CyberChatbot';
+import { LeadCaptureSection } from '@/components/LeadCaptureSection';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SafeImage } from '@/components/SafeImage';
+import { ProcessSection } from '@/components/ProcessSection';
+import { PrinciplesSection } from '@/components/PrinciplesSection';
+import { FaqSection } from '@/components/FaqSection';
+import { MetaGoogleAdsCard } from '@/components/MetaGoogleAdsCard';
+import { ParticleCanvas } from '@/components/ParticleCanvas';
+import { SiteFooter } from '@/components/SiteFooter';
+import {
+  Sparkles,
+  Zap,
+  ArrowRight,
   CheckCircle2,
   Activity,
   X,
@@ -14,17 +24,17 @@ import {
   ShoppingBasket,
   Calendar,
   Check,
-  Mail,
-  Send,
   Megaphone,
   Search as SearchIcon,
   Code,
-  Bot,
   Maximize2,
   Utensils,
   ShoppingBag,
   Hotel,
-  Globe
+  Stethoscope,
+  Building2,
+  Dumbbell,
+  Globe,
 } from 'lucide-react';
 
 // --- TYPE DEFINITIONS ---
@@ -36,11 +46,6 @@ interface ServiceItem {
   features: string[];
 }
 
-interface QuestionItem {
-  id: string;
-  label: string;
-  answer: string;
-}
 
 interface DemoItem {
   id: string;
@@ -54,14 +59,10 @@ interface DemoItem {
   metrics: string;
   mockupType: 'restaurant' | 'ecommerce' | 'hotel';
   navItems: string[];
+  /** Seçim kartının arkasında görünen sektör görseli. */
+  preview: string;
 }
 
-interface ChatMessage {
-  id: string;
-  sender: 'bot' | 'user';
-  text: string;
-  time: string;
-}
 
 // --- CONSTANTS ---
 const SERVICES_OVERVIEW: ServiceItem[] = [
@@ -69,7 +70,7 @@ const SERVICES_OVERVIEW: ServiceItem[] = [
     title: 'Özel Web Tasarım & Geliştirme',
     desc: 'İşletmenize özel, Lighthouse %100 hızlı, mobil uyumlu ve yüksek dönüşüm odaklı modern web mimarileri.',
     icon: Code,
-    color: 'from-blue-600 to-indigo-600',
+    color: 'from-brand-600 to-brand-500',
     features: ['Sıfır Altyapı Gecikmesi', 'Özel UX/UI Tasarım', 'Core Web Vitals Optimizasyonu']
   },
   {
@@ -83,18 +84,11 @@ const SERVICES_OVERVIEW: ServiceItem[] = [
     title: 'Meta & Google Reklam Yönetimi',
     desc: 'Yüksek ROAS odaklı reklam kurguları, Meta Pixel ve Google dönüşüm optimizasyonları ile bütçe verimliliği.',
     icon: Megaphone,
-    color: 'from-indigo-500 to-purple-600',
+    color: 'from-brand-400 to-brand-700',
     features: ['Hedef Kitle Analizi', 'Dönüşüm Odaklı Kreatifler', 'Detaylı ROI Raporlama']
   }
 ];
 
-const PRESET_QUESTIONS: QuestionItem[] = [
-  { id: '1', label: '🚀 Web sitenizi kaç günde kuruyorsunuz?', answer: 'Projelerimizin karmaşıklığına bağlı olarak anahtar teslim web sitelerini ortalama 5 ila 10 iş günü içerisinde yayına alıyoruz.' },
-  { id: '2', label: '📈 SEO ile satışlarımı nasıl artırırsınız?', answer: 'Teknik altyapınızı Google standartlarına tamamen uyumlu hale getirerek, potansiyel müşterilerinizin sizi doğrudan arama sonuçlarında bulmasını sağlıyoruz.' },
-  { id: '3', label: '💰 Fiyatlandırma politikanız nedir?', answer: 'Her işletmenin ihtiyacı farklı olduğundan, işletmenize özel analiz yaptıktan sonra bütçenize en uygun şeffaf fiyat teklifini sunuyoruz.' },
-  { id: '4', label: '⚡ 0.08s hız nasıl mümkün oluyor?', answer: 'Klasik yavaş veritabanı sorguları yerine hibrit Edge mimarisi ve modern önbellekleme teknolojileri kullanarak sayfalarımızın anında açılmasını sağlıyoruz.' },
-  { id: '5', label: '🎯 Reklam yönetiminde ROAS garantisi var mı?', answer: 'Meta ve Google reklamlarında nokta atışı hedef kitle kurguları ve düzenli optimizasyonlarla reklam harcama getirisinizi (ROAS) maksimuma çıkarıyoruz.' }
-];
 
 const DEMO_LIST: DemoItem[] = [
   {
@@ -107,6 +101,7 @@ const DEMO_LIST: DemoItem[] = [
     badgeColor: 'border-amber-500/30 text-amber-400 bg-amber-500/10',
     accentColor: 'text-amber-400',
     metrics: 'Masa Rezervasyonu: +%240 | Yükleme: 0.05s',
+    preview: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=70',
     mockupType: 'restaurant',
     navItems: ['Ana Menü', 'Şefin Spesiyalleri', 'Şarap Kavı', 'Rezervasyon']
   },
@@ -120,6 +115,7 @@ const DEMO_LIST: DemoItem[] = [
     badgeColor: 'border-pink-500/30 text-pink-400 bg-pink-500/10',
     accentColor: 'text-pink-400',
     metrics: 'Sepete Ekleme: +%180 | Yükleme: 0.08s',
+    preview: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=70',
     mockupType: 'ecommerce',
     navItems: ['Yeni Gelenler', 'Erkek', 'Kadın', 'Sepetim']
   },
@@ -130,444 +126,67 @@ const DEMO_LIST: DemoItem[] = [
     category: 'Turizm & Otelcilik',
     path: '/demo/otel-rezervasyon',
     icon: Hotel,
-    badgeColor: 'border-blue-500/30 text-blue-400 bg-blue-500/10',
-    accentColor: 'text-blue-400',
+    badgeColor: 'border-brand-500/30 text-brand-400 bg-brand-500/10',
+    accentColor: 'text-brand-400',
     metrics: 'Direkt Rezervasyon: +%310 | Yükleme: 0.06s',
+    preview: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=70',
     mockupType: 'hotel',
     navItems: ['Odalar & Süitler', 'Spa & Wellness', 'Gastronomi', 'Hızlı Rezerve']
+  },
+  {
+    id: 'klinik-saglik',
+    title: 'Klinik & Sağlık',
+    subtitle: 'Vitalis Klinik - Diş & Estetik',
+    category: 'Sağlık & Klinik',
+    path: '/demo/klinik-saglik',
+    icon: Stethoscope,
+    badgeColor: 'border-teal-500/30 text-teal-400 bg-teal-500/10',
+    accentColor: 'text-teal-400',
+    metrics: 'Online Randevu: +%190 | Yükleme: 0.06s',
+    preview: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=70',
+    mockupType: 'restaurant',
+    navItems: ['Tedaviler', 'Hekimlerimiz', 'Randevu', 'Yorumlar'],
+  },
+  {
+    id: 'emlak-portfoy',
+    title: 'Emlak & Gayrimenkul',
+    subtitle: 'Meridyen Gayrimenkul - Portföy',
+    category: 'Emlak & Yatırım',
+    path: '/demo/emlak-portfoy',
+    icon: Building2,
+    badgeColor: 'border-sky-500/30 text-sky-400 bg-sky-500/10',
+    accentColor: 'text-sky-400',
+    metrics: 'İlan Görüntüleme: +%260 | Yükleme: 0.07s',
+    preview: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=70',
+    mockupType: 'hotel',
+    navItems: ['Portföy', 'Arama', 'Favoriler', 'Danışman'],
+  },
+  {
+    id: 'spor-salonu',
+    title: 'Spor Salonu & Fitness',
+    subtitle: 'Forge Athletic Club',
+    category: 'Spor & Sağlıklı Yaşam',
+    path: '/demo/spor-salonu',
+    icon: Dumbbell,
+    badgeColor: 'border-lime-500/30 text-lime-400 bg-lime-500/10',
+    accentColor: 'text-lime-400',
+    metrics: 'Üyelik Başvurusu: +%215 | Yükleme: 0.05s',
+    preview: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=70',
+    mockupType: 'ecommerce',
+    navItems: ['Paketler', 'Ders Programı', 'Eğitmenler', 'Deneme'],
   },
 ];
 
 // --- COMPONENTS ---
 
-const CyberChatbot: FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setMessages([
-      { 
-        id: 'init',
-        sender: 'bot', 
-        text: 'Merhaba! Ben Nexus AI Asistanı. İşletmeniz için en uygun web mimarisi, SEO veya reklam stratejileri hakkında size nasıl yardımcı olabilirim?', 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-      }
-    ]);
-  }, []);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
-  }, [messages, isOpen, scrollToBottom]);
-
-  const handleSendMessage = (textToSend?: string) => {
-    const text = textToSend || inputValue;
-    if (!text.trim()) return;
-
-    const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMessage: ChatMessage = { id: Date.now().toString(), sender: 'user', text, time: userTime };
-    
-    setMessages(prev => [...prev, userMessage]);
-    if (!textToSend) setInputValue('');
-    setIsTyping(true);
-
-    setTimeout(() => {
-      let botReply = 'Talebiniz alınmıştır! Uzman ekibimiz bu konuda size detaylı bilgi vermek için hazır. Hemen hızlı teklif formunu doldurabilir veya doğrudan iletişime geçebilirsiniz.';
-      
-      const matchedPreset = PRESET_QUESTIONS.find(q => 
-        q.label.toLowerCase().includes(text.toLowerCase().substring(0, 10)) || text.toLowerCase().includes(q.id)
-      );
-
-      if (matchedPreset) {
-        botReply = matchedPreset.answer;
-      } else if (text.toLowerCase().includes('fiyat') || text.toLowerCase().includes('ücret')) {
-        botReply = 'Fiyatlarımız projenin kapsamına ve gereksinimlerine göre özel olarak belirlenmektedir. Size net bilgi verebilmemiz için web sitenizi ve ihtiyaçlarınızı form üzerinden iletebilirsiniz.';
-      } else if (text.toLowerCase().includes('merhaba') || text.toLowerCase().includes('selam')) {
-        botReply = 'Merhaba! Nexus Labs ekosistemine hoş geldiniz. Size nasıl rehberlik edebilirim?';
-      }
-
-      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const botMessage: ChatMessage = { id: (Date.now() + 1).toString(), sender: 'bot', text: botReply, time: botTime };
-      
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 800);
-  };
-
-  return (
-    <aside aria-label="Nexus AI Asistan Chatbot" className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="w-[calc(100vw-1.5rem)] max-w-[350px] sm:max-w-[380px] h-[450px] sm:h-[540px] rounded-2xl bg-slate-950 border border-slate-800 shadow-2xl flex flex-col overflow-hidden backdrop-blur-2xl mb-3"
-          >
-            {/* Chat Header */}
-            <div className="p-3 sm:p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
-                    Nexus AI Asistanı <Sparkles className="w-3 h-3 text-blue-400" />
-                  </h3>
-                  <p className="text-[10px] font-mono text-slate-400">Çevrim içi • Anında Yanıt</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-                aria-label="Sohbeti Kapat"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Chat Body */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 text-xs">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-                >
-                  <div
-                    className={`max-w-[88%] p-2.5 sm:p-3 rounded-xl leading-relaxed ${
-                      msg.sender === 'user'
-                        ? 'bg-blue-600 text-white font-medium rounded-tr-none'
-                        : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                  <span className="text-[9px] text-slate-500 mt-1 px-1">{msg.time}</span>
-                </div>
-              ))}
-
-              {isTyping && (
-                <div className="flex items-center gap-1.5 p-3 rounded-xl bg-slate-900 border border-slate-800 w-fit">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce [animation-delay:0.2s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce [animation-delay:0.4s]" />
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Presets */}
-            <div className="px-2.5 py-2 bg-slate-900/60 border-t border-slate-800 overflow-x-auto flex gap-1.5 no-scrollbar">
-              {PRESET_QUESTIONS.map((q) => (
-                <button
-                  key={q.id}
-                  onClick={() => handleSendMessage(q.label)}
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-blue-500 text-[10px] sm:text-[11px] text-slate-300 whitespace-nowrap transition-all"
-                >
-                  {q.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Input */}
-            <div className="p-2.5 sm:p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
-              <input
-                type="text"
-                aria-label="Mesajınız"
-                placeholder="Mesajınızı yazın..."
-                value={inputValue}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-blue-500 transition-colors"
-              />
-              <button
-                onClick={() => handleSendMessage()}
-                className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all shrink-0"
-                aria-label="Gönder"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-        aria-label="Nexus AI Asistanı Aç"
-        className="relative p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-xl bg-blue-600 text-white font-semibold text-xs tracking-wide shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 group"
-      >
-        <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-400 border-2 border-slate-950" />
-        <Bot className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
-        <span className="hidden sm:inline">Nexus AI Asistanı</span>
-      </motion.button>
-    </aside>
-  );
-};
-
-const LeadCaptureSection: FC = () => {
-  const [email, setEmail] = useState('');
-  const [website, setWebsite] = useState('');
-  const [selectedService, setSelectedService] = useState('Özel Web Tasarım & Geliştirme');
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSubmitted(true);
-    }, 1000);
-  };
-
-  return (
-    <section id="teklif-al" className="my-8 sm:my-12 p-4 sm:p-10 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden shadow-xl text-left scroll-mt-28">
-      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 relative z-10">
-        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] sm:text-xs font-mono uppercase">
-          <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-          <span>HIZLI TEKLİF & İLETİŞİM FORMU</span>
-        </div>
-
-        <div className="space-y-1.5 sm:space-y-2">
-          <h3 className="text-lg sm:text-3xl font-extrabold text-white tracking-tight">
-            İşletmeniz İçin En Doğru Çözümü Birlikte Planlayalım
-          </h3>
-          <p className="text-slate-400 text-xs sm:text-sm font-light">
-            Hangi hizmeti almak istediğinizi seçin, web sitenizi analiz edelim; 15 dakika içinde size özel strateji ve teklif oluşturalım.
-          </p>
-        </div>
-
-        {submitted ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-4 sm:p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm flex items-center gap-3"
-          >
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <div>
-              <strong className="block text-white text-xs sm:text-sm font-bold">Talebiniz Başarıyla Alındı.</strong>
-              Uzman ekibimiz seçtiğiniz hizmet doğrultusunda analiz yaparak sizinle iletişime geçecektir.
-            </div>
-          </motion.div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 pt-1">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {[
-                'Özel Web Tasarım & Geliştirme',
-                'SEO Optimizasyonu',
-                'Meta & Google Reklam Yönetimi'
-              ].map((srv) => (
-                <button
-                  type="button"
-                  key={srv}
-                  onClick={() => setSelectedService(srv)}
-                  className={`p-2.5 sm:p-3 rounded-xl border text-xs text-left transition-all flex items-center justify-between ${
-                    selectedService === srv
-                      ? 'bg-blue-600/20 border-blue-500 text-white font-medium'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="truncate">{srv}</span>
-                  {selectedService === srv && <Check className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-1" />}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3">
-              <div className="md:col-span-5 relative">
-                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  inputMode="url"
-                  aria-label="Web Siteniz"
-                  placeholder="Web siteniz (örn: sirketiniz.com)"
-                  value={website}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setWebsite(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
-              <div className="md:col-span-4 relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="email"
-                  required
-                  aria-label="E-posta Adresiniz"
-                  placeholder="E-posta adresiniz"
-                  value={email}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
-              <div className="md:col-span-3">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-full py-2.5 sm:py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs tracking-wide transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <span>{loading ? 'Gönderiliyor...' : 'Teklif Al'}</span>
-                  {!loading && <Send className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
-
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] font-mono text-slate-400 pt-1">
-          <span className="flex items-center gap-1.5"><Check className="w-3 h-3 text-blue-400" /> Kredi kartı gerekmez</span>
-          <span className="flex items-center gap-1.5"><Check className="w-3 h-3 text-blue-400" /> Doğrudan uzman desteği</span>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const TopAdBanner: FC = () => {
-  const [isVisible, setIsVisible] = useState(true);
-  if (!isVisible) return null;
-
-  return (
-    <aside aria-label="Sponsorlu Duyuru" className="bg-slate-900 border-b border-slate-800 text-slate-300 text-xs py-1.5 sm:py-2 px-3 sm:px-4 relative z-50">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        <div className="flex items-center gap-2 overflow-hidden truncate">
-          <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-semibold text-[9px] sm:text-[10px] shrink-0">
-            SPONSORLU
-          </span>
-          <span className="truncate text-[10px] sm:text-xs">
-            🚀 <strong>CloudEdge Pro:</strong> İlk 100 kullanıcıya özel %50 indirimli bulut sunucu altyapısı!
-          </span>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="#teklif-al"
-            className="underline font-medium hover:text-white transition-colors text-[10px] sm:text-xs hidden md:inline"
-          >
-            Fırsatı Yakala &rarr;
-          </Link>
-          <button 
-            onClick={() => setIsVisible(false)}
-            className="p-1 hover:bg-slate-800 rounded transition-colors"
-            aria-label="Duyuruyu Kapat"
-          >
-            <X className="w-3.5 h-3.5 text-slate-400" />
-          </button>
-        </div>
-      </div>
-    </aside>
-  );
-};
-
-const MetaGoogleAdsCard: FC = () => {
-  return (
-    <section className="my-8 sm:my-10 p-4 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden shadow-lg">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6 relative z-10 text-left">
-        <div className="space-y-2.5 sm:space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] sm:text-[10px] font-mono tracking-wider uppercase">
-            <Megaphone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span>META & GOOGLE REKLAM YÖNETİMİ</span>
-          </div>
-          <h3 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
-            Reklam Bütçenizi Boşa Harcamayın, Doğru Kitleyle Satışa Dönüştürün
-          </h3>
-          <p className="text-slate-400 text-xs sm:text-sm font-light leading-relaxed">
-            Meta (Instagram & Facebook) ve Google Ads kampanyalarınızı profesyonel veri analitiği, dönüşüm optimizasyonu ve nokta atışı hedef kitle kurgularıyla yöneterek yüksek ROAS elde edin.
-          </p>
-          <div className="flex flex-wrap gap-2.5 sm:gap-3 text-xs text-slate-300 pt-1">
-            <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-400" /> Profesyonel Meta Pixel Kurulumu</span>
-            <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-400" /> Google Performance Max Optimizasyonu</span>
-          </div>
-        </div>
-
-        <Link
-          href="#teklif-al"
-          className="w-full md:w-auto px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all text-center whitespace-nowrap shrink-0"
-        >
-          Reklam Teklifi Al
-        </Link>
-      </div>
-    </section>
-  );
-};
-
-const ParticleCanvas: FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', handleResize);
-
-    const particleCount = Math.min(Math.floor(width / 25), 30);
-    const particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-      size: Math.random() * 1.5 + 1,
-    }));
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = '#3b82f620';
-        ctx.fill();
-      });
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-40" />;
-};
 
 const InteractiveRestaurantMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
-  // Optimisation: Re-render sırasında sürekli yeni Date objesi üretilmemesi için useMemo kullanımı
   const tomorrowDate = useMemo(() => {
     return new Date(Date.now() + 86400000).toISOString().split('T')[0];
   }, []);
@@ -804,8 +423,8 @@ const InteractiveHotelMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
     <div className="space-y-4 sm:space-y-6 text-left">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
         <div className="md:col-span-7 space-y-2.5 sm:space-y-3">
-          <div className="text-[10px] sm:text-[11px] font-mono text-blue-400 font-semibold uppercase tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
+          <div className="text-[10px] sm:text-[11px] font-mono text-brand-400 font-semibold uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand-400" />
             OTEL MODÜLÜ: {activeTab}
           </div>
 
@@ -819,7 +438,7 @@ const InteractiveHotelMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
                 onClick={() => setSelectedSuite(suite.name)}
                 className={`p-3 sm:p-3.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between shadow-sm ${
                   selectedSuite === suite.name 
-                    ? 'bg-blue-500/10 border-blue-500/50 text-white' 
+                    ? 'bg-brand-500/10 border-brand-500/50 text-white' 
                     : 'bg-slate-900/80 border-slate-800 text-slate-300'
                 }`}
               >
@@ -828,7 +447,7 @@ const InteractiveHotelMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
                   <p className="text-[10px] sm:text-[11px] text-slate-400 font-light truncate">{suite.desc}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-blue-400 font-mono font-bold text-xs sm:text-sm">€{suite.price}</span>
+                  <span className="text-brand-400 font-mono font-bold text-xs sm:text-sm">€{suite.price}</span>
                   <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 block">/ gece</span>
                 </div>
               </div>
@@ -860,10 +479,10 @@ const InteractiveHotelMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
 
             <div className="pt-2 sm:pt-3 border-t border-slate-800 flex justify-between items-center text-xs sm:text-sm">
               <span className="text-slate-400">Toplam Tutar:</span>
-              <span className="text-blue-400 font-bold text-sm sm:text-base">€{totalPrice}</span>
+              <span className="text-brand-400 font-bold text-sm sm:text-base">€{totalPrice}</span>
             </div>
 
-            <button className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wide transition-all">
+            <button className="w-full py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs uppercase tracking-wide transition-all">
               Direkt Rezerve Et (%0 Komisyon)
             </button>
           </div>
@@ -876,20 +495,20 @@ const InteractiveHotelMockup: FC<{ activeTab: string }> = ({ activeTab }) => {
 const BenchmarkSimulator: FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [progressOld, setProgressOld] = useState(0);
-  const [progressNexus, setProgressNexus] = useState(0);
+  const [progressKodara, setProgressKodara] = useState(0);
   const [oldStatus, setOldStatus] = useState<'idle' | 'loading' | 'failed' | 'done'>('idle');
-  const [nexusStatus, setNexusStatus] = useState<'idle' | 'done'>('idle');
+  const [kodaraStatus, setKodaraStatus] = useState<'idle' | 'done'>('idle');
 
   const runBenchmark = () => {
     setIsTesting(true);
     setProgressOld(0);
-    setProgressNexus(0);
+    setProgressKodara(0);
     setOldStatus('loading');
-    setNexusStatus('idle');
+    setKodaraStatus('idle');
 
     setTimeout(() => {
-      setProgressNexus(100);
-      setNexusStatus('done');
+      setProgressKodara(100);
+      setKodaraStatus('done');
     }, 120);
 
     let currentProgress = 0;
@@ -911,7 +530,7 @@ const BenchmarkSimulator: FC = () => {
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-8 space-y-5 sm:space-y-6 shadow-xl relative overflow-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-800 pb-4 sm:pb-5">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
+          <div className="p-2 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 shrink-0">
             <Activity className="w-5 h-5" />
           </div>
           <div className="text-left">
@@ -926,7 +545,7 @@ const BenchmarkSimulator: FC = () => {
           className={`w-full sm:w-auto px-4 py-2.5 sm:py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
             isTesting
               ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-500'
+              : 'bg-brand-600 text-white hover:bg-brand-500'
           }`}
         >
           <Zap className="w-4 h-4 fill-current" />
@@ -981,11 +600,11 @@ const BenchmarkSimulator: FC = () => {
           )}
         </div>
 
-        <div className="p-3.5 sm:p-5 rounded-xl bg-slate-950/60 border border-blue-500/30 space-y-3 sm:space-y-4">
+        <div className="p-3.5 sm:p-5 rounded-xl bg-slate-950/60 border border-brand-500/30 space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
-              <span className="font-mono text-xs font-bold text-blue-400 truncate">NEXUS EDGE CORE</span>
+              <span className="w-2 h-2 rounded-full bg-brand-400 shrink-0" />
+              <span className="font-mono text-xs font-bold text-brand-400 truncate">KODARA EDGE CORE</span>
             </div>
             <span className="font-mono text-[10px] sm:text-[11px] text-emerald-400 shrink-0">Gecikme: 0.08ms</span>
           </div>
@@ -993,12 +612,12 @@ const BenchmarkSimulator: FC = () => {
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-mono">
               <span className="text-slate-400">Yükleme Durumu</span>
-              <span className="text-blue-400 font-bold">{progressNexus}%</span>
+              <span className="text-brand-400 font-bold">{progressKodara}%</span>
             </div>
             <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-blue-500"
-                animate={{ width: `${progressNexus}%` }}
+                className="h-full bg-brand-500"
+                animate={{ width: `${progressKodara}%` }}
                 transition={{ ease: 'easeOut' }}
               />
             </div>
@@ -1007,15 +626,15 @@ const BenchmarkSimulator: FC = () => {
           <div className="pt-1 sm:pt-2 space-y-1.5 text-xs font-mono">
             <div className="flex justify-between text-slate-400">
               <span>Sunucu Yanıt Süresi (TTFB):</span>
-              <span className="text-emerald-400 font-semibold">{nexusStatus === 'idle' ? '-' : '0.08 ms'}</span>
+              <span className="text-emerald-400 font-semibold">{kodaraStatus === 'idle' ? '-' : '0.08 ms'}</span>
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Core Web Vitals Skor:</span>
-              <span className="text-emerald-400 font-semibold">{nexusStatus === 'idle' ? '-' : '100 / 100'}</span>
+              <span className="text-emerald-400 font-semibold">{kodaraStatus === 'idle' ? '-' : '100 / 100'}</span>
             </div>
           </div>
 
-          {nexusStatus === 'done' && (
+          {kodaraStatus === 'done' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1061,7 +680,7 @@ const LiveDemoShowcase: FC = () => {
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-xs sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
-                    {activeDemo.title} <span className="text-[10px] sm:text-xs font-mono text-blue-400 hidden sm:inline">(Canlı Önizleme)</span>
+                    {activeDemo.title} <span className="text-[10px] sm:text-xs font-mono text-brand-400 hidden sm:inline">(Canlı Önizleme)</span>
                   </h3>
                   <p className="text-[10px] sm:text-xs text-slate-400 font-mono truncate">{activeDemo.subtitle}</p>
                 </div>
@@ -1085,7 +704,7 @@ const LiveDemoShowcase: FC = () => {
               <span className="text-[10px] sm:text-xs">Edge Simülatör Modu</span>
               <button 
                 onClick={() => setIsFullscreenPreview(false)}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-blue-600 text-white font-bold text-xs"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-brand-600 text-white font-bold text-xs"
               >
                 Kapat
               </button>
@@ -1100,30 +719,47 @@ const LiveDemoShowcase: FC = () => {
           const isSelected = activeDemo.id === demo.id;
 
           return (
-            <div
+            <button
               key={demo.id}
+              type="button"
               onClick={() => handleDemoChange(demo)}
-              className={`p-3 sm:p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+              aria-pressed={isSelected}
+              className={`group relative isolate overflow-hidden rounded-xl border p-3 sm:p-4 text-left transition-all duration-300 ${
                 isSelected
-                  ? 'bg-slate-900 border-blue-500 shadow-md'
-                  : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                  ? 'border-brand-500 shadow-lg shadow-brand-600/20 ring-1 ring-brand-500/40'
+                  : 'border-slate-800 hover:border-slate-600'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className={`p-1.5 sm:p-2 rounded-lg border ${demo.badgeColor}`}>
-                  <DemoIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </div>
+              {/* Sektör görseli — seçiliyken belirginleşir */}
+              <SafeImage
+                src={demo.preview}
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className={`-z-10 object-cover transition-all duration-500 ${
+                  isSelected
+                    ? 'scale-105 opacity-40'
+                    : 'opacity-20 grayscale group-hover:scale-105 group-hover:opacity-30 group-hover:grayscale-0'
+                }`}
+              />
+              <span className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/85 to-slate-950/60" />
+
+              <span className="mb-2 flex items-center justify-between">
+                <span className={`rounded-lg border p-1.5 sm:p-2 ${demo.badgeColor}`}>
+                  <DemoIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </span>
                 {isSelected && (
-                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                  <span className="rounded border border-brand-500/30 bg-brand-500/15 px-2 py-0.5 font-mono text-[9px] font-bold text-brand-300 sm:text-[10px]">
                     Aktif
                   </span>
                 )}
-              </div>
-              <h4 className="text-xs sm:text-sm font-bold text-white">
-                {demo.title}
-              </h4>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 font-mono">{demo.category}</p>
-            </div>
+              </span>
+              <span className="block text-xs font-bold text-white sm:text-sm">{demo.title}</span>
+              <span className="mt-0.5 block font-mono text-[10px] text-slate-400 sm:text-[11px]">
+                {demo.category}
+              </span>
+            </button>
           );
         })}
       </div>
@@ -1138,7 +774,7 @@ const LiveDemoShowcase: FC = () => {
 
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 flex-1 max-w-md truncate">
             <Globe className="w-3 h-3 text-slate-500 shrink-0" />
-            <span className="text-slate-500 hidden sm:inline">https://nexus-labs.io/demo/</span>
+            <span className="text-slate-500 hidden sm:inline">https://kodara.com/demo/</span>
             <span className="text-white font-bold truncate">{activeDemo.id}</span>
           </div>
 
@@ -1165,7 +801,7 @@ const LiveDemoShowcase: FC = () => {
                   onClick={() => setMockupTab(item)}
                   className={`px-2 py-1 rounded-md text-[11px] sm:text-xs font-mono transition-all whitespace-nowrap ${
                     mockupTab === item 
-                      ? 'bg-blue-600 text-white font-semibold' 
+                      ? 'bg-brand-600 text-white font-semibold' 
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -1188,7 +824,7 @@ const LiveDemoShowcase: FC = () => {
             </div>
             <Link
               href={activeDemo.path}
-              className="text-[11px] sm:text-xs text-blue-400 hover:underline flex items-center gap-1 shrink-0 ml-auto"
+              className="text-[11px] sm:text-xs text-brand-400 hover:underline flex items-center gap-1 shrink-0 ml-auto"
             >
               <span>Sayfaya Git</span>
               <ArrowRight className="w-3 h-3" />
@@ -1203,43 +839,10 @@ const LiveDemoShowcase: FC = () => {
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#06080e] text-slate-100 font-sans selection:bg-blue-500 selection:text-white overflow-x-hidden relative flex flex-col">
+    <div className="min-h-screen bg-[#06080e] text-slate-100 font-sans selection:bg-brand-500 selection:text-white overflow-x-hidden relative flex flex-col">
       <ParticleCanvas />
       
-      {/* Sticky Header Wrapper */}
-      <div className="sticky top-0 z-40 w-full backdrop-blur-md">
-        <TopAdBanner />
-        <header className="py-2 sm:py-3 px-2.5 sm:px-6 max-w-6xl mx-auto w-full">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between shadow-lg">
-            <div className="flex items-center gap-2">
-              <div className="p-1 sm:p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                <Code className="w-4 h-4" />
-              </div>
-              <span className="font-bold tracking-tight text-xs sm:text-base text-white font-mono">
-                NEXUS<span className="text-blue-500">//</span>LABS
-              </span>
-            </div>
-
-            <nav className="hidden md:flex items-center gap-6 text-xs font-mono text-slate-300">
-              <Link href="#hizmetler" className="hover:text-white transition-colors">Hizmetler</Link>
-              <Link href="#demolar" className="hover:text-white transition-colors">Canlı Demolar</Link>
-              <Link href="#demo" className="hover:text-white transition-colors">Yükleme Testi</Link>
-            </nav>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="hidden sm:flex items-center gap-1 text-[11px] sm:text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-emerald-500/20">
-                <Activity className="w-3 h-3" /> 100/100
-              </span>
-              <Link 
-                href="#teklif-al" 
-                className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs tracking-wide transition-all shadow-md shadow-blue-600/20"
-              >
-                Teklif Al
-              </Link>
-            </div>
-          </div>
-        </header>
-      </div>
+      <SiteHeader />
 
       <CyberChatbot />
 
@@ -1248,12 +851,20 @@ export default function Home() {
         
         {/* Hero Section */}
         <section className="text-center space-y-4 sm:space-y-6 relative pt-2">
+          {/* Arka plan ışıması — dekoratif, etkileşimi engellemez */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-32 -z-10 h-[520px] overflow-visible">
+            <div className="hero-glow absolute inset-0" />
+            <div className="aurora-blob absolute left-1/2 top-0 h-72 w-72 -translate-x-[130%] rounded-full bg-brand-600/25 blur-[110px]" />
+            <div className="aurora-blob aurora-blob-slow absolute left-1/2 top-10 h-80 w-80 translate-x-[30%] rounded-full bg-indigo-500/20 blur-[120px]" />
+            <div className="aurora-blob absolute left-1/2 top-24 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-400/10 blur-[130px]" />
+          </div>
+
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 text-[10px] sm:text-xs font-medium"
           >
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-400" />
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-400" />
             <span>Özel Web Yazılımları & Dijital Çözümler</span>
           </motion.div>
 
@@ -1264,7 +875,7 @@ export default function Home() {
             className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-snug sm:leading-none break-words"
           >
             İşletmeniz İçin Hızlı, Güvenli ve <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-300 to-brand-300">
               Yüksek Dönüşümlü Web Sistemleri
             </span>
           </motion.h1>
@@ -1286,7 +897,7 @@ export default function Home() {
           >
             <Link 
               href="#demolar"
-              className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs tracking-wide transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs tracking-wide transition-all shadow-lg shadow-brand-600/20 flex items-center justify-center gap-2"
             >
               <Globe className="w-4 h-4" />
               <span>Canlı Demoları Gör</span>
@@ -1296,7 +907,7 @@ export default function Home() {
               href="#teklif-al"
               className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-semibold text-xs tracking-wide transition-all flex items-center justify-center gap-2"
             >
-              <Zap className="w-4 h-4 text-blue-400" />
+              <Zap className="w-4 h-4 text-brand-400" />
               <span>Hemen Teklif Al</span>
             </Link>
           </motion.div>
@@ -1305,7 +916,7 @@ export default function Home() {
         {/* Services Section */}
         <section id="hizmetler" className="space-y-5 sm:space-y-8 scroll-mt-28">
           <div className="text-center space-y-1 sm:space-y-2">
-            <h2 className="text-[10px] sm:text-xs font-mono text-blue-400 tracking-wider uppercase">// HİZMETLERİMİZ</h2>
+            <h2 className="text-[10px] sm:text-xs font-mono text-brand-400 tracking-wider uppercase">// HİZMETLERİMİZ</h2>
             <h3 className="text-lg sm:text-3xl font-bold text-white">İşletmenizi Büyütecek Dijital Çözümler</h3>
             <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto font-light">
               Web tasarım, SEO arama motoru optimizasyonu ve reklam yönetimiyle tek noktadan tam kapsamlı dijital destek.
@@ -1330,7 +941,7 @@ export default function Home() {
                     <ul className="space-y-1.5 sm:space-y-2 pt-2 border-t border-slate-800/80 text-xs text-slate-300">
                       {srv.features.map((feat, fIdx) => (
                         <li key={fIdx} className="flex items-center gap-2">
-                          <Check className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                          <Check className="w-3.5 h-3.5 text-brand-400 shrink-0" />
                           <span>{feat}</span>
                         </li>
                       ))}
@@ -1340,7 +951,7 @@ export default function Home() {
                   <div className="pt-2 sm:pt-3 border-t border-slate-800">
                     <Link
                       href="#teklif-al"
-                      className="text-xs font-mono font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+                      className="text-xs font-mono font-bold text-brand-400 hover:text-brand-300 flex items-center gap-1 transition-colors"
                     >
                       <span>Detaylı İncele</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1358,7 +969,7 @@ export default function Home() {
         {/* Live Demo Showcase */}
         <section id="demolar" className="space-y-5 sm:space-y-8 scroll-mt-28">
           <div className="text-center space-y-1 sm:space-y-2">
-            <h2 className="text-[10px] sm:text-xs font-mono text-blue-400 tracking-wider uppercase">// CANLI SEKTÖREL DEMOLAR</h2>
+            <h2 className="text-[10px] sm:text-xs font-mono text-brand-400 tracking-wider uppercase">// CANLI SEKTÖREL DEMOLAR</h2>
             <h3 className="text-lg sm:text-3xl font-bold text-white">Sektörünüze Özel Canlı Web Mimarileri</h3>
             <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto font-light">
               Müşterilerinize sunacağımız yüksek hızlı arayüzleri ve interaktif özellikleri doğrudan test edin.
@@ -1368,10 +979,14 @@ export default function Home() {
           <LiveDemoShowcase />
         </section>
 
+        <ProcessSection />
+
+        <PrinciplesSection />
+
         {/* Benchmark Section */}
         <section id="demo" className="space-y-5 sm:space-y-8 scroll-mt-28">
           <div className="text-center space-y-1 sm:space-y-2">
-            <h2 className="text-[10px] sm:text-xs font-mono text-blue-400 tracking-wider uppercase">// PERFORMANS SİMÜLATÖRÜ</h2>
+            <h2 className="text-[10px] sm:text-xs font-mono text-brand-400 tracking-wider uppercase">// PERFORMANS SİMÜLATÖRÜ</h2>
             <h3 className="text-lg sm:text-3xl font-bold text-white">Neden Milisaniyeler Önemlidir?</h3>
             <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto font-light">
               Yavaş açılan her 1 saniye, ziyaretçilerinizin %20'sinin sitenizden ayrılmasına neden olur.
@@ -1381,26 +996,14 @@ export default function Home() {
           <BenchmarkSimulator />
         </section>
 
+        <FaqSection />
+
         {/* Lead Capture Form */}
         <LeadCaptureSection />
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-900 py-6 sm:py-10 px-4 sm:px-6 relative z-10 font-mono text-xs text-slate-500">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-center sm:text-left">
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-            <span className="font-bold text-white">NEXUS LABS</span>
-            <span>&copy; {new Date().getFullYear()} Tüm Hakları Saklıdır.</span>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4 text-slate-400 text-[11px] sm:text-xs">
-            <Link href="#hizmetler" className="hover:text-white transition-colors">Hizmetler</Link>
-            <Link href="#demolar" className="hover:text-white transition-colors">Demolar</Link>
-            <Link href="#teklif-al" className="hover:text-white transition-colors">Teklif Al</Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

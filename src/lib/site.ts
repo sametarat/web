@@ -1,0 +1,88 @@
+/**
+ * Marka ve site geneli sabitler.
+ * Tek kaynak: isim, URL veya iletişim bilgisi değişince sadece burayı güncelle.
+ */
+
+export const SITE = {
+  /** Marka adı — başlıklarda ve metinlerde kullanılır. */
+  name: 'Kodara',
+  /** Wordmark'ın küçük harfli hâli (logo bileşeni bunu kullanır). */
+  wordmark: 'kodara',
+  tagline: 'Dijital Ürün & Web Mimarisi Ajansı',
+  description:
+    'Kodara, işletmeler için yüksek hızlı web siteleri, e-ticaret sistemleri ve özel yazılımlar geliştirir. Next.js tabanlı modern mimari, teknik SEO ve dönüşüm odaklı tasarım.',
+  locale: 'tr_TR',
+} as const;
+
+/**
+ * Kanonik site adresi.
+ * Öncelik sırası: elle verilen NEXT_PUBLIC_SITE_URL → Vercel production domain → localhost.
+ * Vercel'de NEXT_PUBLIC_SITE_URL tanımlarsan OG görselleri ve sitemap doğru domaine çıkar.
+ */
+const FALLBACK_SITE_URL = 'http://localhost:5555';
+
+/** Değerin gerçekten geçerli bir mutlak URL olup olmadığını doğrular. */
+function asValidUrl(candidate: string | undefined): string | null {
+  if (!candidate) return null;
+  const trimmed = candidate.trim().replace(/\/$/, '');
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    // Sadece http(s) kabul et — yanlışlıkla girilmiş metinler elenmiş olur.
+    return url.protocol === 'http:' || url.protocol === 'https:' ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getSiteUrl(): string {
+  // Ortam değişkeni bozuksa build'i düşürmek yerine uyarıp yedeğe dönüyoruz;
+  // metadataBase modül seviyesinde new URL() çağırdığı için geçersiz bir değer
+  // aksi hâlde tüm derlemeyi kırar.
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  const valid = asValidUrl(explicit);
+  if (valid) return valid;
+  if (explicit?.trim()) {
+    console.warn(
+      `[site] NEXT_PUBLIC_SITE_URL geçerli bir URL değil, yok sayıldı: ${JSON.stringify(explicit)}`,
+    );
+  }
+
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const fromVercel = asValidUrl(vercel && `https://${vercel}`);
+  if (fromVercel) return fromVercel;
+
+  return FALLBACK_SITE_URL;
+}
+
+/**
+ * İletişim bilgileri.
+ * TODO: telefon ve adresi kendi gerçek bilgilerinle değiştir —
+ * bunlar iletişim sayfasında ve demo sayfalarındaki WhatsApp linklerinde kullanılıyor.
+ */
+export const CONTACT = {
+  email: 'sametaratoglu@gmail.com',
+  /** Uluslararası format, boşluksuz — wa.me linki bunu kullanır. */
+  phoneE164: '905550000000',
+  /** Ekranda gösterilen okunabilir hâli. */
+  phoneDisplay: '+90 555 000 00 00',
+  city: 'İstanbul, Türkiye',
+  workingHours: 'Hafta içi 09:00 – 18:00',
+} as const;
+
+/** Verilen metinle WhatsApp sohbeti açan link üretir. */
+export function whatsAppLink(message: string): string {
+  return `https://wa.me/${CONTACT.phoneE164}?text=${encodeURIComponent(message)}`;
+}
+
+/** Sitemap ve navigasyonda kullanılan herkese açık rotalar. */
+export const PUBLIC_ROUTES = [
+  '/',
+  '/iletisim',
+  '/demo/gurme-restoran',
+  '/demo/moda-eticaret',
+  '/demo/otel-rezervasyon',
+  '/demo/klinik-saglik',
+  '/demo/emlak-portfoy',
+  '/demo/spor-salonu',
+] as const;

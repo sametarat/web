@@ -2,7 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import Link from 'next/link';
+import { whatsAppLink } from '@/lib/site';
+import { SafeImage } from '@/components/SafeImage';
 import { 
+  ArrowLeft, 
+  PhoneCall, 
   Star, 
   X, 
   CheckCircle2, 
@@ -114,6 +120,14 @@ const ROOMS: Room[] = [
 ];
 
 export default function HotelPage() {
+  const openWhatsApp = () => {
+    window.open(
+      whatsAppLink('Merhaba Aetheria Hotel, konaklama ve rezervasyon hakkında bilgi almak istiyorum.'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+  };
+
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('Tümü');
   
@@ -220,15 +234,32 @@ export default function HotelPage() {
     <main className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-x-hidden">
       
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-6 md:px-16 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-serif font-bold text-amber-400 tracking-wider">AETHERIA HOTEL & RESIDENCES</span>
+      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-4 md:px-16 py-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Link
+            href="/"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2 text-xs font-medium text-slate-300 transition-all hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-300"
+          >
+            <ArrowLeft className="h-4 w-4 text-amber-400" />
+            <span className="hidden sm:inline">Ana Sayfaya Dön</span>
+          </Link>
+          <span className="hidden h-5 w-px bg-slate-800 lg:block" />
+          <span className="hidden truncate text-xl font-serif font-bold tracking-wider text-amber-400 lg:block">
+            AETHERIA HOTEL &amp; RESIDENCES
+          </span>
         </div>
-        
-        <div className="flex items-center gap-6 text-xs font-medium text-slate-300">
-          <a href="#mulkler" className="hover:text-amber-400 transition-colors">Mülklerimiz ({ROOMS.length})</a>
-          <a href="#hizmetler" className="hover:text-amber-400 transition-colors">Tesis İmkanları</a>
-          <a href="#iletisim" className="hover:text-amber-400 transition-colors">İletişim</a>
+
+        <div className="flex items-center gap-4 text-xs font-medium text-slate-300 md:gap-6">
+          <a href="#mulkler" className="hidden transition-colors hover:text-amber-400 md:inline">Mülklerimiz ({ROOMS.length})</a>
+          <a href="#hizmetler" className="hidden transition-colors hover:text-amber-400 lg:inline">Tesis İmkanları</a>
+          <button
+            type="button"
+            onClick={openWhatsApp}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:from-amber-400 hover:to-amber-500"
+          >
+            <PhoneCall className="h-3.5 w-3.5" />
+            <span>İletişime Geç</span>
+          </button>
         </div>
       </header>
 
@@ -331,7 +362,14 @@ export default function HotelPage() {
               <div key={room.id} className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col justify-between hover:border-amber-500/50 transition-all duration-300 group">
                 <div>
                   <div className="relative h-60 overflow-hidden">
-                    <img src={room.image} alt={room.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <SafeImage
+                      accent="text-amber-400"
+                      src={room.image}
+                      alt={room.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                     <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-slate-950/80 text-amber-400 text-[10px] font-semibold uppercase">
                       {room.tag}
                     </span>
@@ -428,7 +466,13 @@ export default function HotelPage() {
                 <form onSubmit={(e) => { e.preventDefault(); setReservationComplete(true); setTimeout(() => { setReservationComplete(false); setIsModalOpen(false); }, 3000); }} className="space-y-4">
                   
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3">
-                    <img src={selectedRoom.image} alt={selectedRoom.name} className="w-16 h-16 rounded-lg object-cover" />
+                    <Image
+                      src={selectedRoom.image}
+                      alt={selectedRoom.name}
+                      width={64}
+                      height={64}
+                      className="h-16 w-16 rounded-lg object-cover"
+                    />
                     <div>
                       <div className="text-xs font-bold text-white">{selectedRoom.name}</div>
                       <div className="text-[10px] text-slate-400">{selectedRoom.location}</div>

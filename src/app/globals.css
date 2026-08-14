@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
+/**
+ * Kodara marka teması.
+ * Ana renk: iris/violet. İkincil vurgu: emerald (metrik ve "başarı" durumları).
+ * Tailwind v4'te @theme içindeki --color-* değişkenleri bg-brand-500, text-brand-400,
+ * border-brand-500/20 gibi tüm yardımcı sınıfları otomatik üretir.
+ */
+@theme {
+  --color-brand-50: #f2f0ff;
+  --color-brand-100: #e6e2ff;
+  --color-brand-200: #cfc8ff;
+  --color-brand-300: #b3a9ff;
+  --color-brand-400: #9a8cff;
+  --color-brand-500: #7c6bff;
+  --color-brand-600: #6250f0;
+  --color-brand-700: #4f3fd1;
+  --color-brand-800: #3f32a6;
+  --color-brand-900: #2c2374;
+  --color-brand-950: #17123d;
+
+  --color-surface: #07080f;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: var(--color-surface);
+  --foreground: #e2e8f0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  /* Sticky header'ın hash linklerinde içeriği kesmemesi için */
+  scroll-padding-top: 6rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Klavye ile gezinenler için görünür odak halkası */
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+}
+
+/* Hareket azaltma tercihine saygı göster */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- Hero aurora: yavaşça sürüklenen marka renkli ışık lekeleri --- */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(4%, -6%, 0) scale(1.15);
+    opacity: 0.85;
+  }
+}
+
+.aurora-blob {
+  animation: aurora-drift 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.aurora-blob-slow {
+  animation-duration: 26s;
+  animation-direction: reverse;
+}
+
+/* Kenarları taşan yumuşak ışıma — hero'nun arkasında derinlik hissi verir */
+.hero-glow {
+  background: radial-gradient(
+    60% 60% at 50% 0%,
+    color-mix(in oklab, var(--color-brand-500) 28%, transparent) 0%,
+    transparent 70%
+  );
 }

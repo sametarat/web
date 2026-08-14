@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#07080f"/>
+  <text x="14" y="45" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+        font-size="38" font-weight="800" letter-spacing="-2" fill="#ffffff">k</text>
+  <circle cx="44" cy="41" r="4.5" fill="#7c6bff"/>
+</svg>

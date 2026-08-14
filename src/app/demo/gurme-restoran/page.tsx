@@ -2,6 +2,9 @@
 
 import React, { useState, useMemo, useCallback, useTransition } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { SafeImage } from '@/components/SafeImage';
+import { whatsAppLink } from '@/lib/site';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, 
@@ -95,7 +98,7 @@ const MENU_ITEMS: MenuItem[] = [
     calories: '390 kcal',
     description: 'Odun ateşinde tütsülenmiş manda burrata, moleküler yaban mersini havyarı, fesleğen esansı ve fırınlanmış çeri domates.',
     badge: 'Gurme Başlangıç',
-    image: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb12765?auto=format&fit=crop&w=800&q=75',
+    image: 'https://images.unsplash.com/photo-1477921510058-85812315a3c4?auto=format&fit=crop&w=800&q=75',
     winePairing: '2022 Sauvignon Blanc'
   },
   {
@@ -169,7 +172,7 @@ export default function AvantGardeGastronomyPage() {
     const text = encodeURIComponent(
       `Merhaba L'Étoile Noir Concierge, ${seatingArea} alanı için ${guestCount} kişilik VIP rezervasyon bilgisi almak istiyorum.`
     );
-    window.open(`https://wa.me/905550000000?text=${text}`, '_blank', 'noopener,noreferrer');
+    window.open(whatsAppLink(decodeURIComponent(text)), '_blank', 'noopener,noreferrer');
   }, [seatingArea, guestCount]);
 
   return (
@@ -296,12 +299,13 @@ export default function AvantGardeGastronomyPage() {
               >
                 <div>
                   <div className="relative h-64 overflow-hidden bg-slate-900">
-                    <img 
-                      src={item.image} 
+                    <SafeImage
+                      accent="text-amber-500"
+                      src={item.image}
                       alt={item.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out relative z-10"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out relative z-10"
                     />
 
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90 z-20" />
@@ -543,7 +547,14 @@ export default function AvantGardeGastronomyPage() {
             className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 cursor-pointer"
           >
             <div className="relative max-w-5xl w-full max-h-[85vh] rounded-3xl overflow-hidden border border-amber-500/40">
-              <img src={selectedImage} alt="Ultra Detail" className="w-full h-full object-contain" />
+              <Image
+                src={selectedImage}
+                alt="Seçilen tabağın büyütülmüş görseli"
+                width={1600}
+                height={1200}
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="h-full w-full object-contain"
+              />
               <button 
                 onClick={() => setSelectedImage(null)}
                 aria-label="Kapat"

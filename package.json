@@ -1,15 +1,17 @@
 {
-  "name": "my-app",
+  "name": "kodara-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 5555",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.41",
+    "@ai-sdk/groq": "^4.0.28",
+    "@ai-sdk/react": "^4.0.67",
     "@vercel/speed-insights": "^2.0.0",
     "ai": "^7.0.64",
     "clsx": "^2.1.1",

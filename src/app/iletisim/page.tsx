@@ -1,94 +1,107 @@
-'use client';
+import type { Metadata } from 'next';
+import { Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { SITE, CONTACT, whatsAppLink } from '@/lib/site';
+import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
+import { ContactForm } from '@/components/ContactForm';
 
-import React from 'react';
-import Link from 'next/link';
-import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+export const metadata: Metadata = {
+  title: 'İletişim',
+  description: `${SITE.name} ile iletişime geçin. Web sitesi, e-ticaret ve özel yazılım projeleriniz için ücretsiz ön görüşme.`,
+  alternates: { canonical: '/iletisim' },
+  openGraph: {
+    title: `İletişim | ${SITE.name}`,
+    description: `${SITE.name} ile iletişime geçin.`,
+    url: '/iletisim',
+  },
+};
+
+const NAV = [
+  { href: '/#hizmetler', label: 'Hizmetler' },
+  { href: '/#demolar', label: 'Canlı Demolar' },
+  { href: '/iletisim', label: 'İletişim' },
+];
+
+const DETAILS = [
+  { icon: Mail, label: 'E-Posta', value: CONTACT.email, href: `mailto:${CONTACT.email}` },
+  { icon: Phone, label: 'Telefon', value: CONTACT.phoneDisplay, href: `tel:+${CONTACT.phoneE164}` },
+  { icon: MapPin, label: 'Konum', value: CONTACT.city },
+  { icon: Clock, label: 'Çalışma Saatleri', value: CONTACT.workingHours },
+];
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-6 md:px-16 py-4 flex items-center justify-between">
-        <Link href="/" className="text-xl font-serif font-bold text-amber-400 tracking-wider">
-          AETHERIA HOTEL & RESIDENCES
-        </Link>
-        
-        <div className="flex items-center gap-6 text-xs font-medium text-slate-300">
-          <Link href="/#mulkler" className="hover:text-amber-400 transition-colors">Mülklerimiz</Link>
-          <Link href="/iletisim" className="text-amber-400 font-bold">İletişim</Link>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-surface text-slate-100">
+      <SiteHeader links={NAV} ctaHref="#brief" showBanner={false} />
 
-      {/* İçerik */}
-      <section className="py-16 px-6 md:px-16 max-w-6xl mx-auto space-y-12">
-        <div className="text-center space-y-3">
-          <span className="text-amber-400 text-xs font-semibold tracking-widest uppercase">Bize Ulaşın</span>
-          <h1 className="text-3xl md:text-5xl font-serif font-bold text-white">İletişim & Konum</h1>
-          <p className="text-slate-400 text-xs max-w-lg mx-auto">
-            Rezervasyon talepleriniz, özel organizasyonlar veya sorularınız için 7/24 ekibimizle iletişime geçebilirsiniz.
+      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-20 pt-10 sm:px-6 sm:pt-16">
+        <div className="mx-auto max-w-2xl space-y-3 text-center">
+          <span className="font-mono text-xs uppercase tracking-[0.3em] text-brand-400">
+            // İletişim
+          </span>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+            Projenizi Konuşalım
+          </h1>
+          <p className="text-sm leading-relaxed text-slate-400 sm:text-base">
+            Formu doldurun ya da doğrudan yazın. Ön görüşme ücretsizdir; ihtiyacınızı dinleyip
+            kapsam, süre ve bütçe aralığını netleştiriyoruz.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* İletişim Bilgileri */}
-          <div className="space-y-6 bg-slate-900 border border-slate-800 p-8 rounded-2xl">
-            <h3 className="text-lg font-bold text-white mb-4">Resepsiyon & Ofis</h3>
-            
-            <div className="flex items-start gap-4 text-xs text-slate-300">
-              <MapPin className="w-5 h-5 text-amber-400 shrink-0" />
-              <div>
-                <strong className="block text-white mb-1">Adres</strong>
-                Aetheria Resort Cad. No:142, Sahil Bölgesi / İstanbul
-              </div>
+        <div className="mt-12 grid gap-6 lg:grid-cols-5">
+          {/* Sol: iletişim bilgileri */}
+          <div className="space-y-4 lg:col-span-2">
+            <div className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8">
+              {DETAILS.map(({ icon: Icon, label, value, href }) => (
+                <div key={label} className="flex items-start gap-4">
+                  <span className="mt-0.5 rounded-lg border border-brand-500/20 bg-brand-500/10 p-2 text-brand-400">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="block text-[11px] font-medium uppercase tracking-wider text-slate-500">
+                      {label}
+                    </span>
+                    {href ? (
+                      <a
+                        href={href}
+                        className="break-words text-sm text-slate-200 transition-colors hover:text-brand-300"
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      <span className="break-words text-sm text-slate-200">{value}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div className="flex items-start gap-4 text-xs text-slate-300">
-              <Phone className="w-5 h-5 text-amber-400 shrink-0" />
-              <div>
-                <strong className="block text-white mb-1">Telefon</strong>
-                +90 (212) 555 01 99
-              </div>
-            </div>
+            <a
+              href={whatsAppLink(
+                `Merhaba ${SITE.name}, bir web projesi hakkında bilgi almak istiyorum.`,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 py-4 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/15"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp'tan Yazın
+            </a>
 
-            <div className="flex items-start gap-4 text-xs text-slate-300">
-              <Mail className="w-5 h-5 text-amber-400 shrink-0" />
-              <div>
-                <strong className="block text-white mb-1">E-Posta</strong>
-                info@aetheriaresidences.com
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 text-xs text-slate-300">
-              <Clock className="w-5 h-5 text-amber-400 shrink-0" />
-              <div>
-                <strong className="block text-white mb-1">Giriş / Çıkış Saatleri</strong>
-                Check-in: 14:00 | Check-out: 12:00
-              </div>
-            </div>
+            <p className="px-1 text-xs leading-relaxed text-slate-500">
+              Formu gönderdiğinizde bilgileriniz yalnızca size dönüş yapmak için kullanılır,
+              üçüncü taraflarla paylaşılmaz.
+            </p>
           </div>
 
-          {/* Hızlı Mesaj Formu */}
-          <form onSubmit={(e) => e.preventDefault()} className="bg-slate-900 border border-slate-800 p-8 rounded-2xl space-y-4 text-xs">
-            <h3 className="text-lg font-bold text-white mb-2">Bize Mesaj Gönderin</h3>
-            <div>
-              <label className="text-slate-400 block mb-1">Adınız Soyadınız</label>
-              <input type="text" placeholder="Orhn..." className="w-full px-3 py-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400" />
-            </div>
-            <div>
-              <label className="text-slate-400 block mb-1">E-Posta Adresiniz</label>
-              <input type="email" placeholder="ornek@email.com" className="w-full px-3 py-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400" />
-            </div>
-            <div>
-              <label className="text-slate-400 block mb-1">Mesajınız</label>
-              <textarea rows={4} placeholder="Talebinizi buraya yazın..." className="w-full px-3 py-2.5 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-400 resize-none" />
-            </div>
-            <button type="submit" className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors">
-              <Send className="w-4 h-4" />
-              <span>Gönder</span>
-            </button>
-          </form>
+          {/* Sağ: brief formu */}
+          <div id="brief" className="scroll-mt-28 lg:col-span-3">
+            <ContactForm />
+          </div>
         </div>
-      </section>
-    </main>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }
