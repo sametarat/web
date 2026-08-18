@@ -47,7 +47,7 @@ export function DemoSwitcher({ currentId }: { currentId: string }) {
             <li key={demo.id}>
               <Link
                 href={demo.path}
-                className="group flex h-full flex-col justify-between rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-all hover:border-white/25 hover:bg-white/[0.07]"
+                className="group flex h-full flex-col justify-between lift rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-all hover:border-white/25 hover:bg-white/[0.07]"
               >
                 <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
                   {demo.sector}

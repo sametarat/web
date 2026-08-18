@@ -1,4 +1,5 @@
 import React from 'react';
+import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
 import { Search, PenTool, Code2, Rocket } from 'lucide-react';
 
 /**
@@ -45,7 +46,8 @@ const STEPS = [
 export function ProcessSection() {
   return (
     <section id="surec" className="scroll-mt-28">
-      <div className="mb-8 text-center sm:mb-12">
+      <Reveal>
+        <div className="mb-8 text-center sm:mb-12">
         <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-brand-400 sm:text-xs">
           // Nasıl Çalışıyoruz
         </span>
@@ -57,12 +59,14 @@ export function ProcessSection() {
           önceden yazılı olarak biliyorsunuz.
         </p>
       </div>
+      </Reveal>
 
-      <ol className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <RevealGroup as="ul" className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {STEPS.map(({ icon: Icon, step, title, duration, desc, deliverable }) => (
-          <li
+          <RevealItem
+            as="li"
             key={step}
-            className="group relative flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition-colors hover:border-brand-500/40"
+            className="group relative flex flex-col lift rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition-colors hover:border-brand-500/40"
           >
             <div className="mb-4 flex items-center justify-between">
               <span className="rounded-lg border border-brand-500/20 bg-brand-500/10 p-2 text-brand-400">
@@ -86,9 +90,9 @@ export function ProcessSection() {
                 {deliverable}
               </span>
             </div>
-          </li>
+          </RevealItem>
         ))}
-      </ol>
+      </RevealGroup>
     </section>
   );
 }

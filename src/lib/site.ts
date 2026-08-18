@@ -70,6 +70,22 @@ export const CONTACT = {
   workingHours: 'Hafta içi 09:00 – 18:00',
 } as const;
 
+/**
+ * Yasal kimlik bilgileri — KVKK aydınlatma metni ve gizlilik politikasında
+ * "veri sorumlusu" olarak gösterilmesi gereken bilgiler.
+ *
+ * DİKKAT: Aşağıdakiler yer tutucu. Gerçek ticari unvanını, adresini ve varsa
+ * vergi/MERSİS numaranı yazmadan yasal sayfalar geçerli sayılmaz.
+ */
+export const LEGAL = {
+  /** Ticari unvan ya da şahıs şirketi adı */
+  entity: 'Kodara — [ticari unvanınızı yazın]',
+  address: '[açık adresinizi yazın], İstanbul, Türkiye',
+  taxInfo: '[vergi dairesi ve numarası / MERSİS no]',
+  /** Metinlerin en son güncellendiği tarih */
+  updatedAt: '15 Ağustos 2026',
+} as const;
+
 /** Verilen metinle WhatsApp sohbeti açan link üretir. */
 export function whatsAppLink(message: string): string {
   return `https://wa.me/${CONTACT.phoneE164}?text=${encodeURIComponent(message)}`;
@@ -79,6 +95,11 @@ export function whatsAppLink(message: string): string {
 export const PUBLIC_ROUTES = [
   '/',
   '/iletisim',
+  '/sss',
+  '/ilkeler',
+  '/kvkk',
+  '/gizlilik',
+  '/cerez-politikasi',
   '/demo/gurme-restoran',
   '/demo/moda-eticaret',
   '/demo/otel-rezervasyon',

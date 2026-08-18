@@ -17,8 +17,8 @@ export function SiteHeader({
   links = [
     { href: '#hizmetler', label: 'Hizmetler' },
     { href: '#demolar', label: 'Canlı Demolar' },
-    { href: '#surec', label: 'Süreç' },
-    { href: '#sss', label: 'SSS' },
+    { href: '/ilkeler', label: 'İlkelerimiz' },
+    { href: '/sss', label: 'SSS' },
   ],
   ctaHref = '#teklif-al',
   showBanner = true,
@@ -30,7 +30,9 @@ export function SiteHeader({
   return (
     <div className="sticky top-0 z-40 w-full backdrop-blur-md">
       {showBanner && <TopAdBanner />}
-      <header className="py-2 sm:py-3 px-2.5 sm:px-6 max-w-6xl mx-auto w-full">
+      {/* Genişlik ana sayfadaki kabuk ile aynı (max-w-[1320px] + aynı padding);
+          aksi hâlde üst bar içerikten dar kalıp hizasız görünüyordu. */}
+      <header className="mx-auto w-full max-w-[1320px] px-5 py-2 sm:px-8 sm:py-3 lg:px-12">
         <div className="bg-slate-900/90 border border-slate-800 rounded-xl px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between shadow-lg">
           <Link href="/" aria-label="Ana sayfa" className="flex items-center gap-2">
             <Logo size="sm" />

@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
+import { trackLead } from '@/lib/track';
 import { Send, CheckCircle2, Loader2 } from 'lucide-react';
 
 const SERVICES = [
@@ -43,6 +45,7 @@ export function ContactForm() {
         const data = await response.json().catch(() => null);
         throw new Error(data?.error ?? 'Mesajınız gönderilemedi.');
       }
+      trackLead('contact');
       setStatus('sent');
     } catch (error) {
       setStatus('error');
@@ -195,6 +198,13 @@ export function ContactForm() {
           </>
         )}
       </button>
+      <p className="text-center text-[11px] leading-relaxed text-slate-500">
+        Formu göndererek{' '}
+        <Link href="/kvkk" className="text-slate-400 underline underline-offset-2 hover:text-brand-400">
+          KVKK aydınlatma metnini
+        </Link>{' '}
+        okuduğunuzu kabul edersiniz. Bilgileriniz yalnızca size dönüş yapmak için kullanılır.
+      </p>
     </form>
   );
 }

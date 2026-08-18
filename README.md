@@ -22,6 +22,9 @@ npm run lint
 | `RESEND_API_KEY` | Lead e-postası için | [resend.com](https://resend.com) → API Keys. Boşsa lead'ler kaybolmaz, sunucu loguna yazılır. |
 | `LEAD_TO_EMAIL` | Lead e-postası için | Bildirimlerin düşeceği adres. |
 | `LEAD_FROM_EMAIL` | hayır | Doğrulanmış gönderen. Varsayılan `onboarding@resend.dev` — Resend'in test adresi, sadece kendi hesap e-postana gönderebilir. Kendi domainini doğrulayınca değiştir. |
+| `NEXT_PUBLIC_META_PIXEL_ID` | hayır | Meta Pixel ID. Boşsa pixel hiç yüklenmez. Form gönderimlerinde `Lead` olayı tetiklenir. |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` | hayır | `AW-XXXXXXXXX` biçiminde. Boşsa gtag yüklenmez. |
+| `NEXT_PUBLIC_GOOGLE_ADS_LEAD_LABEL` | hayır | Google Ads dönüşüm etiketi. Ads ID ile birlikte tanımlıysa `conversion` olayı gönderilir; yoksa `generate_lead` olayına düşülür. |
 | `NEXT_PUBLIC_SITE_URL` | hayır | Kanonik adres. Boşsa Vercel production domaini, o da yoksa localhost. Sitemap ve OG etiketlerini besler. |
 
 ## Yapı
@@ -35,6 +38,7 @@ src/
     icon.svg              Favicon
     sitemap.ts robots.ts  SEO
     iletisim/page.tsx     İletişim sayfası (server component + ContactForm)
+    ucretsiz-analiz/      Reklam açılış sayfası — navigasyonsuz, noindex, tek CTA
     api/bot/route.ts      AI asistanı — Groq (Llama 3.3 70B) streaming + lead yakalama aracı
     api/lead/route.ts     Form endpoint'i
     demo/<sektör>/
@@ -56,6 +60,10 @@ src/
 | `LeadCaptureSection` | Ana sayfa formu → `/api/lead` |
 | `ContactForm` | İletişim sayfası formu → `/api/lead` |
 | `ProcessSection` / `PrinciplesSection` / `FaqSection` | Ana sayfa güven bölümleri |
+| `AnalysisForm` | Reklam açılış sayfası → `/api/lead` (source: landing) |
+| `Analytics` | Meta Pixel / Google Ads — ID yoksa hiç yüklenmez |
+| `MobileNav` | Mobil menü — portal ile body'ye basılır |
+| `DemoSwitcher` | Demo sayfaları arası geçiş |
 | `SafeImage` | Demo sayfaları — görsel yüklenemezse yer tutucu gösterir |
 | `TopAdBanner` / `MetaGoogleAdsCard` / `ParticleCanvas` | Ana sayfa |
 
@@ -99,5 +107,12 @@ kötüye kullanım risk haline gelirse Upstash Redis / Vercel KV ile paylaşıml
 **AI sağlayıcı** `src/app/api/bot/route.ts` başında tek yerde tanımlı (`createGroq` + `MODEL`).
 Başka bir sağlayıcıya geçmek istersen (OpenAI, Gemini, Anthropic) sadece bu iki satır değişir —
 prompt, `saveQualifiedLead` aracı ve istemci tarafı aynı kalır, AI SDK sağlayıcıdan bağımsız çalışır.
+
+**Demolar:** altı demo da yayında. Ana sayfa vitrininde `src/app/page.tsx` içindeki
+`FEATURED_IDS` dizisiyle belirlenen üçü gösteriliyor; hepsi `ALL_DEMOS` içinde duruyor.
+
+**Dönüşüm takibi** `src/lib/track.ts` + `src/components/Analytics.tsx`.
+ID tanımlı değilse hiçbir script yüklenmez ve `trackLead()` sessizce hiçbir şey yapmaz.
+Scriptler `afterInteractive` ile yükleniyor — takip kodu LCP'yi geciktirmesin diye.
 
 **Eksik:** gerçek vaka çalışması / referans bölümü. Ajans sitesinde dönüşümü en çok bu taşır.

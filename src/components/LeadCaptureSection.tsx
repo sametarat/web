@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
+import { trackLead } from '@/lib/track';
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 
 const SERVICES = [
@@ -45,6 +47,7 @@ export const LeadCaptureSection: React.FC = () => {
         throw new Error(data?.error ?? 'Talebiniz gönderilemedi.');
       }
 
+      trackLead('home');
       setStatus('sent');
     } catch (error) {
       setStatus('error');
@@ -205,7 +208,14 @@ export const LeadCaptureSection: React.FC = () => {
                 </>
               )}
             </button>
-          </form>
+            <p className="text-center text-[11px] leading-relaxed text-slate-500">
+        Formu göndererek{' '}
+        <Link href="/kvkk" className="text-slate-400 underline underline-offset-2 hover:text-brand-400">
+          KVKK aydınlatma metnini
+        </Link>{' '}
+        okuduğunuzu kabul edersiniz. Bilgileriniz yalnızca size dönüş yapmak için kullanılır.
+      </p>
+    </form>
         )}
       </div>
     </section>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
 import { KeyRound, Gauge, Receipt, Eye, LifeBuoy, Lock } from 'lucide-react';
 
 /**
@@ -45,7 +46,8 @@ const PRINCIPLES = [
 export function PrinciplesSection() {
   return (
     <section id="ilkeler" className="scroll-mt-28">
-      <div className="mb-8 text-center sm:mb-12">
+      <Reveal>
+        <div className="mb-8 text-center sm:mb-12">
         <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-brand-400 sm:text-xs">
           // Çalışma İlkelerimiz
         </span>
@@ -56,12 +58,14 @@ export function PrinciplesSection() {
           Aşağıdakiler pazarlama cümlesi değil, sözleşmeye giren maddeler.
         </p>
       </div>
+      </Reveal>
 
-      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+      <RevealGroup as="ul" className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {PRINCIPLES.map(({ icon: Icon, title, desc }) => (
-          <li
+          <RevealItem
+            as="li"
             key={title}
-            className="flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-5 transition-colors hover:border-slate-700 hover:bg-slate-900/70"
+            className="flex gap-4 lift rounded-2xl border border-slate-800 bg-slate-900/40 p-5 transition-colors hover:border-slate-700 hover:bg-slate-900/70"
           >
             <span className="mt-0.5 h-fit rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-400">
               <Icon className="h-4 w-4" />
@@ -70,9 +74,9 @@ export function PrinciplesSection() {
               <h3 className="text-sm font-bold text-white">{title}</h3>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{desc}</p>
             </div>
-          </li>
+          </RevealItem>
         ))}
-      </ul>
+      </RevealGroup>
     </section>
   );
 }

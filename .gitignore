@@ -44,3 +44,6 @@ next-env.d.ts
 .vercel
 .env*
 !.env.example
+
+# gecici: silinmeyi bekleyen dosyalar (Tailwind kaynak taramasindan da haric tutulur)
+/_to_delete/

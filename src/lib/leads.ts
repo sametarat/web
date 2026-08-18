@@ -19,10 +19,16 @@ export type Lead = {
   contactInfo: string;
   projectType: string;
   notes?: string;
-  /** Lead'in geldiği yer: chatbot mu, iletişim formu mu. */
-  source: 'chatbot' | 'form';
+  /** Lead'in geldiği yer. */
+  source: 'chatbot' | 'form' | 'landing';
   /** Varsa müşterinin mevcut sitesi. */
   website?: string;
+};
+
+const SOURCE_LABELS: Record<Lead['source'], string> = {
+  chatbot: 'AI Chatbot',
+  form: 'İletişim formu',
+  landing: 'Reklam sayfası (ücretsiz analiz)',
 };
 
 export type LeadResult = { delivered: boolean; reason?: string };
@@ -88,7 +94,7 @@ function buildHtml(lead: Lead): string {
     ['Hizmet', lead.projectType],
     ['Mevcut site', lead.website || '—'],
     ['Notlar', lead.notes || '—'],
-    ['Kaynak', lead.source === 'chatbot' ? 'AI Chatbot' : 'İletişim formu'],
+    ['Kaynak', SOURCE_LABELS[lead.source]],
     ['Tarih', new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })],
   ];
 
@@ -117,7 +123,7 @@ function buildText(lead: Lead): string {
     `Hizmet: ${lead.projectType}`,
     `Mevcut site: ${lead.website || '—'}`,
     `Notlar: ${lead.notes || '—'}`,
-    `Kaynak: ${lead.source === 'chatbot' ? 'AI Chatbot' : 'İletişim formu'}`,
+    `Kaynak: ${SOURCE_LABELS[lead.source]}`,
   ].join('\n');
 }
 
