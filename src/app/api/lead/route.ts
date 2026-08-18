@@ -16,8 +16,11 @@ const formSchema = z.object({
   name: z.string().trim().min(2, 'Ad soyad çok kısa').max(120),
   email: z.string().trim().email('Geçerli bir e-posta adresi girin').max(200),
   website: z.string().trim().max(300).optional().or(z.literal('')),
-  service: z.string().trim().max(60),
+  service: z.string().trim().max(60).optional().or(z.literal('')),
   message: z.string().trim().max(2000).optional().or(z.literal('')),
+  phone: z.string().trim().max(30).optional().or(z.literal('')),
+  /** Hangi form gönderdi — e-postada kaynağı ayırt etmek için. */
+  source: z.enum(['form', 'landing']).optional(),
   /** Bot tuzağı: gerçek kullanıcılar bu gizli alanı doldurmaz. */
   company: z.string().max(0).optional(),
 });
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email, website, service, message, company } = parsed.data;
+  const { name, email, phone, website, service, message, company, source } = parsed.data;
 
   // Honeypot doluysa bot: başarılıymış gibi dön, hiçbir şey gönderme.
   if (company) {
@@ -47,11 +50,11 @@ export async function POST(req: Request) {
 
   const result = await sendLeadEmail({
     fullName: name,
-    contactInfo: email,
-    projectType: SERVICE_LABELS[service] ?? service,
+    contactInfo: phone ? `${email} · ${phone}` : email,
+    projectType: service ? (SERVICE_LABELS[service] ?? service) : 'Ücretsiz analiz talebi',
     notes: message || undefined,
     website: website || undefined,
-    source: 'form',
+    source: source ?? 'form',
   });
 
   // E-posta gönderilemese bile lead sunucu loguna düştü; kullanıcıyı hata ekranıyla kaybetme.

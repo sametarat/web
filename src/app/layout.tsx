@@ -1,13 +1,33 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Archivo, IBM_Plex_Mono, Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { ConsentGate } from '@/components/ConsentGate';
 import { SITE, CONTACT, getSiteUrl } from '@/lib/site';
 import './globals.css';
 
+// latin-ext olmadan ş/ğ/İ/ı glifleri yedek fonta düşüyor ve satır içinde
+// iki farklı yazı tipi karışıyordu — Türkçe bir sitede zorunlu.
 const inter = Inter({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   display: 'swap',
   variable: '--font-inter',
+});
+
+// Başlık yüzü. Genişlik ekseni (wdth) açık: etiketler genişletilmiş,
+// büyük başlıklar normal genişlikte kullanılıyor — teknik çizim başlığı hissi.
+const archivo = Archivo({
+  subsets: ['latin', 'latin-ext'],
+  axes: ['wdth'],
+  display: 'swap',
+  variable: '--font-archivo',
+});
+
+// Sayı ve etiket yüzü. Ölçüm değerleri (ms, ₺, %) mühendislik belgesi gibi okunsun diye.
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-plex-mono',
 });
 
 const siteUrl = getSiteUrl();
@@ -64,7 +84,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" dir="ltr" data-scroll-behavior="smooth" className={inter.variable}>
+    <html
+      lang="tr"
+      dir="ltr"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${archivo.variable} ${plexMono.variable}`}
+    >
       <body className="font-sans antialiased">
         {/* Google'a kim olduğumuzu makine okunur biçimde söyler (bilgi paneli, marka eşleşmesi) */}
         <script
@@ -92,6 +117,7 @@ export default function RootLayout({
         />
         {children}
         <SpeedInsights />
+        <ConsentGate />
       </body>
     </html>
   );

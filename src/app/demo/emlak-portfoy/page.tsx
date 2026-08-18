@@ -758,7 +758,7 @@ export default function EmlakPortfoyPage() {
                   type="button"
                   onClick={() => setType(t)}
                   aria-pressed={type === t}
-                  className={`rounded-xl px-3.5 py-1.5 text-xs font-medium transition-all ${
+                  className={`rounded-xl px-3.5 py-2.5 text-xs font-medium transition-all ${
                     type === t
                       ? 'bg-sky-500 font-bold text-slate-950 shadow-lg shadow-sky-500/20'
                       : 'border border-slate-800 bg-slate-950 text-slate-400 hover:text-white'
