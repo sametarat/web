@@ -8,13 +8,22 @@ import { sendLeadEmail, isDuplicateLead, extractContact } from '@/lib/leads';
 export const maxDuration = 30;
 
 /**
- * Groq, Llama modellerini çok düşük gecikmeyle sunuyor ve cömert bir ücretsiz
- * kotası var. Anahtar: https://console.groq.com/keys → .env.local'de GROQ_API_KEY.
+ * Groq çok düşük gecikmeyle çalışıyor ve ücretsiz kotası bu ölçekteki bir
+ * ajans sitesi için fazlasıyla yeterli. Anahtar: https://console.groq.com/keys
+ * → .env.local'de (ve Vercel ortam değişkenlerinde) GROQ_API_KEY.
  *
- * Sağlayıcı değiştirmek istersen sadece bu iki satır değişir; prompt, araç ve
- * istemci tarafı aynı kalır (AI SDK sağlayıcıdan bağımsız çalışır).
+ * DİKKAT: Groq modelleri zaman zaman emekliye ayrılıyor; `llama-3.3-70b-versatile`
+ * bu şekilde kaldırıldı. Bot "ulaşılamıyor" demeye başlarsa önce
+ * https://console.groq.com/docs/models listesine bak ve aşağıdaki varsayılanı
+ * güncelle — ya da kod değiştirmeden GROQ_MODEL ortam değişkenini ayarla.
+ *
+ * Üretimdeki seçenekler: openai/gpt-oss-120b (daha iyi Türkçe, varsayılan),
+ * openai/gpt-oss-20b (daha hızlı ve daha ucuz kota tüketimi).
+ *
+ * Sağlayıcı değiştirmek istersen sadece bu satır ve `createGroq` çağrısı değişir;
+ * prompt, araç ve istemci tarafı aynı kalır (AI SDK sağlayıcıdan bağımsız çalışır).
  */
-const MODEL = 'llama-3.3-70b-versatile';
+const MODEL = process.env.GROQ_MODEL?.trim() || 'openai/gpt-oss-120b';
 
 const saveLeadSchema = z.object({
   fullName: z.string().describe('Müşterinin adı soyadı'),
@@ -67,11 +76,22 @@ DAVRANIŞ KURALLARI
 /** Sağlayıcı hatalarını tek satırda, gürültüsüz logla. */
 function logProviderError(error: unknown) {
   const err = error as { name?: string; message?: string; statusCode?: number };
+  const message = err?.message ?? String(error);
   console.error(
-    `[bot] ${err?.name ?? 'Error'}${err?.statusCode ? ` (${err.statusCode})` : ''}: ${
-      err?.message ?? String(error)
-    }`,
+    `[bot] ${err?.name ?? 'Error'}${err?.statusCode ? ` (${err.statusCode})` : ''}: ${message}`,
   );
+
+  // En sık karşılaşılan iki arıza için loga doğrudan çözüm yaz; aksi hâlde
+  // sağlayıcının ham hatası tek başına ne yapılacağını anlatmıyor.
+  if (err?.statusCode === 401 || /invalid api key|unauthorized/i.test(message)) {
+    console.error(
+      '[bot] ÇÖZÜM: GROQ_API_KEY geçersiz. https://console.groq.com/keys adresinden yeni anahtar üretip Vercel > Settings > Environment Variables altında güncelle, sonra redeploy et.',
+    );
+  } else if (err?.statusCode === 404 || /decommissioned|model_not_found|does not exist/i.test(message)) {
+    console.error(
+      `[bot] ÇÖZÜM: "${MODEL}" modeli Groq'ta artık yok. https://console.groq.com/docs/models listesinden güncel bir model seçip GROQ_MODEL ortam değişkenine yaz (kod değişikliği gerekmez).`,
+    );
+  }
 }
 
 /** Bir UIMessage'ın metin içeriğini birleştirir. */

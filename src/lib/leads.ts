@@ -163,12 +163,37 @@ export async function sendLeadEmail(lead: Lead): Promise<LeadResult> {
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
       console.error('[lead] Resend hatası:', response.status, detail);
+
+      // Ham Resend hatası tek başına ne yapılacağını anlatmıyor; en sık üç
+      // arıza için loga doğrudan çözümü yaz. Lead'in kendisi zaten aşağıda
+      // loglanıyor, yani bu noktada hiçbir talep kaybolmuyor.
+      if (response.status === 401 || response.status === 403) {
+        console.error(
+          `[lead] ÇÖZÜM: RESEND_API_KEY geçersiz ya da "${from}" adresinden göndermeye yetkin yok. ` +
+            'Ücretsiz planda kendi domainini doğrulamadıysan gönderen olarak "onboarding@resend.dev" ' +
+            'kullanmalısın ve alıcı (LEAD_TO_EMAIL) Resend hesabının e-postası olmalı.',
+        );
+      } else if (response.status === 422) {
+        console.error(
+          '[lead] ÇÖZÜM: Gönderen ya da alıcı adresi Resend tarafından reddedildi. ' +
+            'LEAD_FROM_EMAIL biçimini ("Ad <adres@domain>") ve domain doğrulamasını kontrol et.',
+        );
+      } else if (response.status === 429) {
+        console.error(
+          '[lead] ÇÖZÜM: Resend kota sınırı aşıldı (ücretsiz plan: günde 100, ayda 3.000 e-posta).',
+        );
+      }
+
+      // E-posta gitmediyse lead'i tam içeriğiyle loga düşür — Vercel > Logs
+      // üzerinden elle kurtarılabilsin.
+      console.error('[lead] Gönderilemeyen lead:', JSON.stringify(lead));
       return { delivered: false, reason: `resend_${response.status}` };
     }
 
     return { delivered: true };
   } catch (error) {
     console.error('[lead] E-posta gönderilemedi:', error);
+    console.error('[lead] Gönderilemeyen lead:', JSON.stringify(lead));
     return { delivered: false, reason: 'network_error' };
   }
 }
