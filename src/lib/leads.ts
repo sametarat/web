@@ -1,5 +1,5 @@
 import { SITE } from '@/lib/site';
-import { storeLead, markLeadSeen } from '@/lib/leadStore';
+import { storeLead, seenBefore } from '@/lib/leadStore';
 
 /**
  * Lead bildirimlerini e-posta ile gönderir.
@@ -65,8 +65,9 @@ function dedupeKey(contact: string): string {
  * bildirim gelir. Lead kaçırmaktansa iki kez bildirim almak yeğdir.
  */
 export async function isDuplicateLead(contact: string): Promise<boolean> {
-  const shared = await markLeadSeen(contact, DEDUPE_WINDOW / 1000);
-  if (shared !== null) return !shared;
+  // seenBefore zaten "mükerrer mi" sorusunun cevabını veriyor — ters çevirme.
+  const shared = await seenBefore(contact, DEDUPE_WINDOW / 1000);
+  if (shared !== null) return shared;
 
   const key = dedupeKey(contact);
   const seenAt = recentLeads.get(key);

@@ -96,6 +96,43 @@ async function redis<T = unknown>(command: (string | number)[]): Promise<T | nul
   }
 }
 
+/**
+ * `redis()` hata durumunda da null döndürüyor; bu bazı komutlar için yeterli
+ * değil. Örneğin `SET ... NX` anahtar zaten varsa null döner — bunu bir
+ * ağ hatasından ayırt edemezsek "yeni lead"i "mükerrer" sanıp atarız.
+ * Bu sarmalayıcı ikisini ayırıyor.
+ */
+async function redisEnvelope<T = unknown>(
+  command: (string | number)[],
+): Promise<{ ok: true; result: T | null } | { ok: false }> {
+  const url = process.env[URL_ENV];
+  const token = process.env[TOKEN_ENV];
+  if (!url || !token) return { ok: false };
+
+  try {
+    const response = await fetch(url.replace(/\/$/, ''), {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(command),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!response.ok) {
+      console.error('[store] Upstash hatası:', response.status);
+      return { ok: false };
+    }
+    const data = (await response.json()) as { result?: T; error?: string };
+    if (data.error) {
+      console.error('[store] Upstash komut hatası:', data.error);
+      return { ok: false };
+    }
+    return { ok: true, result: (data.result ?? null) as T | null };
+  } catch (error) {
+    console.error('[store] Upstash erişilemedi:', error);
+    return { ok: false };
+  }
+}
+
 /** Zamana göre artan, çakışmayan ve tahmin edilmesi zor bir kimlik. */
 function newId(): string {
   const time = Date.now().toString(36);
@@ -207,29 +244,45 @@ export async function rateLimitExceeded(
 ): Promise<boolean | null> {
   if (!isStoreConfigured()) return null;
 
-  const redisKey = `rl:${key}`;
+  // Pencere numarası anahtarın İÇİNDE. Böylece her pencerede yeni bir anahtar
+  // kullanılıyor ve EXPIRE herhangi bir sebeple başarısız olsa bile sayaç
+  // kalıcı olarak takılı kalmıyor — eski anahtar bir daha hiç okunmuyor.
+  // (Önceki sürümde tek bir `rl:<ip>` anahtarı vardı; EXPIRE bir kez
+  // kaçtığında o IP kalıcı olarak engelleniyordu.)
+  const window = Math.floor(Date.now() / (windowSeconds * 1000));
+  const redisKey = `rl:${key}:${window}`;
+
   const count = await redis<number>(['INCR', redisKey]);
   if (count === null) return null;
 
-  // İlk istekte pencereyi başlat. EXPIRE'ı her seferinde yenilemiyoruz;
-  // aksi hâlde sürekli istek atan biri pencerenin sonunu sonsuza öteler.
-  if (count === 1) await redis(['EXPIRE', redisKey, windowSeconds]);
+  if (count === 1) await redis(['EXPIRE', redisKey, windowSeconds * 2]);
 
   return count > limit;
 }
 
 /**
- * Bu iletişim bilgisi için pencerede daha önce bildirim gönderildi mi?
- * Atomik: SET NX EX — iki eşzamanlı istek aynı anda "yeni" diyemez.
+ * Bu iletişim bilgisi bu pencerede DAHA ÖNCE görüldü mü?
+ *
+ *   true  → daha önce görüldü (mükerrer)
+ *   false → ilk kez görüldü (yeni lead)
+ *   null  → depo yok ya da erişilemedi; çağıran yedeğine düşmeli
+ *
+ * Atomik: `SET key 1 NX EX` — iki eşzamanlı istek aynı anda "yeni" diyemez.
+ * NX başarısız olduğunda Upstash `null` döndürüyor; bunu bir ağ hatasından
+ * ayırt edebilmek için `redisEnvelope` kullanıyoruz. Ayırt edemezsek her
+ * lead'i mükerrer sanıp atarız — bu hata bir kez yaşandı, tekrar etmesin.
  */
-export async function markLeadSeen(
+export async function seenBefore(
   contact: string,
   windowSeconds: number,
 ): Promise<boolean | null> {
   if (!isStoreConfigured()) return null;
 
   const key = `seen:${contact.toLowerCase().replace(/[\s()-]/g, '')}`;
-  const result = await redis<string | null>(['SET', key, '1', 'NX', 'EX', windowSeconds]);
-  // Upstash NX başarısızsa null döner → kayıt zaten vardı.
-  return result === null;
+  const res = await redisEnvelope<string>(['SET', key, '1', 'NX', 'EX', windowSeconds]);
+  if (!res.ok) return null;
+
+  // result === 'OK' → yazıldı, yani ilk kez görülüyor.
+  // result === null → NX başarısız, yani zaten vardı.
+  return res.result === null;
 }
