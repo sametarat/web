@@ -20,7 +20,7 @@ const formSchema = z.object({
   message: z.string().trim().max(2000).optional().or(z.literal('')),
   phone: z.string().trim().max(30).optional().or(z.literal('')),
   /** Hangi form gönderdi — e-postada kaynağı ayırt etmek için. */
-  source: z.enum(['form', 'landing']).optional(),
+  source: z.enum(['form', 'landing', 'pentest', 'guvenlik-analizi', 'iso-27001', 'is-ortakligi']).optional(),
   /** Bot tuzağı: gerçek kullanıcılar bu gizli alanı doldurmaz. */
   company: z.string().max(0).optional(),
 });

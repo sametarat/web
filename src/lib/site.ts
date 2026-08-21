@@ -71,6 +71,26 @@ export const CONTACT = {
 } as const;
 
 /**
+ * Güvenlik hizmetleri hattı.
+ *
+ * Siber güvenlik analizi ve iş ortaklığı sayfaları bu bilgileri kullanır.
+ * Web ajansı tarafından ayrı bir iletişim kanalı olarak tutuluyor; ikisini
+ * birleştirmek istersen buradaki değerleri CONTACT ile aynı yap.
+ */
+export const SECURITY_CONTACT = {
+  brand: 'Dijital Güvenlik Analiz & IT Operasyon Merkezi',
+  email: 'dgtlguvenlik@gmail.com',
+  /** Uluslararası format, boşluksuz — wa.me ve tel: linkleri bunu kullanır. */
+  phoneE164: '905318949915',
+  phoneDisplay: '0531 894 99 15',
+} as const;
+
+/** Güvenlik hattı için WhatsApp linki. */
+export function securityWhatsAppLink(message: string): string {
+  return `https://wa.me/${SECURITY_CONTACT.phoneE164}?text=${encodeURIComponent(message)}`;
+}
+
+/**
  * Yasal kimlik bilgileri — KVKK aydınlatma metni ve gizlilik politikasında
  * "veri sorumlusu" olarak gösterilmesi gereken bilgiler.
  *
@@ -94,6 +114,10 @@ export function whatsAppLink(message: string): string {
 /** Sitemap ve navigasyonda kullanılan herkese açık rotalar. */
 export const PUBLIC_ROUTES = [
   '/',
+  '/pentest',
+  '/guvenlik-analizi',
+  '/iso-27001',
+  '/is-ortakligi',
   '/iletisim',
   '/sss',
   '/ilkeler',

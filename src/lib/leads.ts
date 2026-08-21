@@ -20,7 +20,7 @@ export type Lead = {
   projectType: string;
   notes?: string;
   /** Lead'in geldiği yer. */
-  source: 'chatbot' | 'form' | 'landing';
+  source: 'chatbot' | 'form' | 'landing' | 'pentest' | 'guvenlik-analizi' | 'iso-27001' | 'is-ortakligi';
   /** Varsa müşterinin mevcut sitesi. */
   website?: string;
 };
@@ -29,6 +29,10 @@ const SOURCE_LABELS: Record<Lead['source'], string> = {
   chatbot: 'AI Chatbot',
   form: 'İletişim formu',
   landing: 'Reklam sayfası (ücretsiz analiz)',
+  pentest: 'Sızma testi sayfası',
+  'guvenlik-analizi': 'Siber güvenlik analizi sayfası',
+  'iso-27001': 'ISO 27001 hazırlık sayfası',
+  'is-ortakligi': 'İŞ ORTAĞI BAŞVURUSU',
 };
 
 export type LeadResult = { delivered: boolean; reason?: string };

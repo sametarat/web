@@ -23,7 +23,9 @@ export const isTrackingEnabled = Boolean(META_PIXEL_ID || GOOGLE_ADS_ID);
  * Bir lead formu başarıyla gönderildiğinde çağrılır.
  * @param source Hangi form — reklam raporlarında ayırt etmek için.
  */
-export function trackLead(source: 'landing' | 'contact' | 'home'): void {
+export function trackLead(
+  source: 'landing' | 'contact' | 'home' | 'pentest' | 'guvenlik-analizi' | 'iso-27001' | 'is-ortakligi',
+): void {
   if (typeof window === 'undefined') return;
 
   // Meta: standart "Lead" olayı — reklam setinde dönüşüm hedefi olarak seçilebilir
