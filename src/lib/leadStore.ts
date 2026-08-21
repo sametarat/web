@@ -183,3 +183,53 @@ export async function deleteLead(id: string): Promise<boolean> {
   await redis(['ZREM', 'leads:index', id]);
   return ok !== null;
 }
+
+/* ============================================================
+   PAYLAŞIMLI SAYAÇLAR
+   ============================================================
+   Hız sınırı ve mükerrer lead kontrolü daha önce süreç belleğindeydi. Serverless
+   ortamda her örnek kendi sayacını tuttuğu için bu koruma kaba bir frenden
+   ibaretti; Cloudflare Workers'ta isolate'lar daha da kısa ömürlü olduğu için
+   iyice zayıflayacaktı. Depo zaten kurulu olduğuna göre sayaçları oraya taşıyoruz.
+
+   Depo yapılandırılmamışsa ya da erişilemezse çağıran taraf kendi bellek içi
+   yedeğine düşüyor — koruma zayıflar ama servis durmaz.
+*/
+
+/**
+ * Sayaç artırır ve limit aşıldıysa true döner.
+ * Depo yoksa/erişilemiyorsa `null` döner; çağıran yedeğe düşmeli.
+ */
+export async function rateLimitExceeded(
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<boolean | null> {
+  if (!isStoreConfigured()) return null;
+
+  const redisKey = `rl:${key}`;
+  const count = await redis<number>(['INCR', redisKey]);
+  if (count === null) return null;
+
+  // İlk istekte pencereyi başlat. EXPIRE'ı her seferinde yenilemiyoruz;
+  // aksi hâlde sürekli istek atan biri pencerenin sonunu sonsuza öteler.
+  if (count === 1) await redis(['EXPIRE', redisKey, windowSeconds]);
+
+  return count > limit;
+}
+
+/**
+ * Bu iletişim bilgisi için pencerede daha önce bildirim gönderildi mi?
+ * Atomik: SET NX EX — iki eşzamanlı istek aynı anda "yeni" diyemez.
+ */
+export async function markLeadSeen(
+  contact: string,
+  windowSeconds: number,
+): Promise<boolean | null> {
+  if (!isStoreConfigured()) return null;
+
+  const key = `seen:${contact.toLowerCase().replace(/[\s()-]/g, '')}`;
+  const result = await redis<string | null>(['SET', key, '1', 'NX', 'EX', windowSeconds]);
+  // Upstash NX başarısızsa null döner → kayıt zaten vardı.
+  return result === null;
+}

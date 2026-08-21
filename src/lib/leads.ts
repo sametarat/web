@@ -1,5 +1,5 @@
 import { SITE } from '@/lib/site';
-import { storeLead } from '@/lib/leadStore';
+import { storeLead, markLeadSeen } from '@/lib/leadStore';
 
 /**
  * Lead bildirimlerini e-posta ile gönderir.
@@ -55,8 +55,19 @@ function dedupeKey(contact: string): string {
   return contact.toLowerCase().replace(/[\s()-]/g, '');
 }
 
-/** Bu iletişim bilgisi için yakın zamanda bildirim gönderildi mi? */
-export function isDuplicateLead(contact: string): boolean {
+/**
+ * Bu iletişim bilgisi için yakın zamanda bildirim gönderildi mi?
+ *
+ * Önce paylaşımlı depoya (Upstash) bakıyor — orada atomik `SET NX EX` ile
+ * çalıştığı için iki eşzamanlı istek aynı anda "yeni" diyemiyor. Depo yoksa
+ * ya da erişilemiyorsa süreç belleğindeki yedeğe düşüyor: serverless'ta
+ * örnekler arası paylaşılmadığı için o hâlde en kötü ihtimalle mükerrer
+ * bildirim gelir. Lead kaçırmaktansa iki kez bildirim almak yeğdir.
+ */
+export async function isDuplicateLead(contact: string): Promise<boolean> {
+  const shared = await markLeadSeen(contact, DEDUPE_WINDOW / 1000);
+  if (shared !== null) return !shared;
+
   const key = dedupeKey(contact);
   const seenAt = recentLeads.get(key);
   const now = Date.now();

@@ -111,7 +111,7 @@ async function captureLeadFromConversation(messages: UIMessage[]) {
   if (userTexts.length === 0) return;
 
   const contact = extractContact(userTexts[userTexts.length - 1]);
-  if (!contact || isDuplicateLead(contact)) return;
+  if (!contact || (await isDuplicateLead(contact))) return;
 
   const transcript = userTexts.slice(-6).join(' | ').slice(0, 1500);
   const result = await sendLeadEmail({
@@ -175,7 +175,7 @@ export async function POST(req: Request) {
         inputSchema: saveLeadSchema,
         execute: async ({ fullName, contactInfo, projectType, notes }) => {
           // Emniyet ağı aynı kişiyi zaten bildirdiyse ikinci e-postayı gönderme.
-          if (isDuplicateLead(contactInfo)) {
+          if (await isDuplicateLead(contactInfo)) {
             return {
               status: 'success',
               message: `${fullName} için bilgiler zaten kaydedildi. Ekibimiz iletişime geçecek.`,
