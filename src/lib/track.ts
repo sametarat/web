@@ -24,7 +24,7 @@ export const isTrackingEnabled = Boolean(META_PIXEL_ID || GOOGLE_ADS_ID);
  * @param source Hangi form — reklam raporlarında ayırt etmek için.
  */
 export function trackLead(
-  source: 'landing' | 'contact' | 'home' | 'pentest' | 'guvenlik-analizi' | 'iso-27001' | 'is-ortakligi',
+  source: 'landing' | 'contact' | 'home' | 'pentest' | 'guvenlik-analizi' | 'iso-27001' | 'is-ortakligi' | 'hizmet' | 'hizmet-teklif',
 ): void {
   if (typeof window === 'undefined') return;
 

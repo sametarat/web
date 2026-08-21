@@ -43,20 +43,7 @@ const SLIDES: Slide[] = [
     ),
     desc: 'Yavaş açılan ve müşteri kaybettiren hazır temaları unutun. İşletmenize özel mimaride geliştirilmiş, milisaniyelik hızlarda çalışan canlı platformlar inşa ediyoruz.',
     primary: { href: '#demolar', label: 'Canlı demoları gör' },
-    secondary: { href: '#teklif-al', label: 'Hemen teklif al' },
-  },
-  {
-    label: 'E-Ticaret',
-    eyebrow: 'E-Ticaret & Satış Altyapısı',
-    title: (
-      <>
-        Ürününüzü değil,{' '}
-        <span className="text-brand-300">satış sürecinizi</span> tasarlıyoruz
-      </>
-    ),
-    desc: 'Ödeme entegrasyonu, stok yönetimi ve sepet akışı; hepsi dönüşüm için kurgulanmış tek bir sistemde. Ziyaretçinin sepete gitmesini engelleyen her adımı ölçüp kaldırıyoruz.',
-    primary: { href: '/demo/moda-eticaret', label: 'E-ticaret demosunu aç' },
-    secondary: { href: '#teklif-al', label: 'Projenizi konuşalım' },
+    secondary: { href: '/web-tasarim', label: 'Web tasarım hizmeti' },
   },
   {
     label: 'SEO & Reklam',
@@ -68,16 +55,48 @@ const SLIDES: Slide[] = [
       </>
     ),
     desc: 'Teknik SEO altyapısı, sayfa hızı ve dönüşüm optimizasyonu ile organik trafiği büyütüyor; Meta ve Google reklamlarını ölçülebilir hedeflerle yönetiyoruz.',
-    primary: { href: '/ucretsiz-analiz', label: 'Ücretsiz site analizi' },
-    secondary: { href: '/ilkeler', label: 'Nasıl çalışıyoruz' },
+    primary: { href: '/seo', label: 'SEO hizmetini incele' },
+    secondary: { href: '/reklam-yonetimi', label: 'Reklam yönetimi' },
+  },
+  {
+    label: 'Güvenlik',
+    eyebrow: 'Sızma Testi & Altyapı Güvenlik Analizi',
+    title: (
+      <>
+        Açığı{' '}
+        <span className="text-brand-300">saldırgandan önce</span> biz bulalım
+      </>
+    ),
+    desc: 'Web, API, iç ağ ve dış ağ üzerinde elle yürütülen sızma testi. Her bulgu adım adım kanıtlanıyor, düzeltme önerisiyle teslim ediliyor ve düzeltmelerden sonra ücretsiz yeniden test ediliyor.',
+    primary: { href: '/pentest', label: 'Sızma testi' },
+    secondary: { href: '/guvenlik-analizi', label: 'Güvenlik analizi' },
+  },
+  {
+    label: 'Uyum & Tescil',
+    eyebrow: 'KVKK · ISO 27001 · Marka ve Patent',
+    title: (
+      <>
+        Denetime ve{' '}
+        <span className="text-brand-300">ihaleye hazır</span> bir kurum olun
+      </>
+    ),
+    desc: 'KVKK uyum süreci, ISO 27001 belgelendirmeye hazırlık ve marka-patent tescili. Denetçinin ne aradığını bilerek hazırlanıyor, evrakı sizin ekibinizin sahiplenmesini sağlıyoruz.',
+    primary: { href: '/iso-27001', label: 'ISO 27001 hazırlık' },
+    secondary: { href: '/kvkk-danismanlik', label: 'KVKK danışmanlığı' },
   },
 ];
 
-/** Sağ sütundaki ölçüm bloğu — sayfanın başka yerlerinde kanıtlanan değerler. */
+/**
+ * Sağ sütundaki bilgi bloğu.
+ *
+ * DİKKAT: Buradaki değerler doğrulanabilir olmalı. Ölçülmemiş hız rakamı ya da
+ * "%100 memnuniyet" gibi ifadeler koyma — ziyaretçi kontrol edemediği rakamı
+ * ciddiye almıyor, kontrol edebildiği yanlış rakam ise güveni tamamen bitiriyor.
+ */
 const MEASUREMENTS = [
-  { label: 'TTFB', value: '0,08 ms' },
-  { label: 'Core Web Vitals', value: '100 / 100' },
+  { label: 'Hizmet alanı', value: '8 başlık' },
   { label: 'Canlı demo', value: '6 sektör' },
+  { label: 'Sertifika', value: 'OSWE · ISO 27001' },
 ];
 
 const INTERVAL = 7000;

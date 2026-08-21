@@ -1,9 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
+import { SERVICES } from '@/content/services';
+
+/** Beş hizmet sayfası — altbilgi, bu sayfaların site geneline açılan yolu. */
+const SERVICE_LINKS = SERVICES.map((service) => ({
+  href: `/${service.slug}`,
+  label: service.navLabel,
+}));
 
 const LINKS = [
-  { href: '/#hizmetler', label: 'Hizmetler' },
   { href: '/#demolar', label: 'Demolar' },
   { href: '/ilkeler', label: 'İlkelerimiz' },
   { href: '/sss', label: 'SSS' },
@@ -20,6 +26,22 @@ const LEGAL_LINKS = [
 export function SiteFooter() {
   return (
     <footer className="relative z-10 border-t border-slate-900 bg-slate-950 px-5 py-6 font-mono text-xs text-slate-500 sm:px-8 sm:py-10 lg:px-12">
+      <nav
+        aria-label="Hizmetler"
+        className="mx-auto mb-5 flex max-w-[1320px] flex-wrap items-center justify-center gap-x-4 gap-y-2 border-b border-slate-900 pb-5 text-[11px] text-slate-400 sm:justify-start sm:text-xs"
+      >
+        <span className="text-slate-600">Hizmetler:</span>
+        {SERVICE_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="min-w-0 transition-colors hover:text-white"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+
       <div className="mx-auto flex max-w-[1320px] flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-center sm:text-left">
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           <span className="font-bold text-white">{SITE.name}</span>

@@ -20,7 +20,7 @@ export type Lead = {
   projectType: string;
   notes?: string;
   /** Lead'in geldiği yer. */
-  source: 'chatbot' | 'form' | 'landing' | 'pentest' | 'guvenlik-analizi' | 'iso-27001' | 'is-ortakligi';
+  source: 'chatbot' | 'form' | 'landing' | 'pentest' | 'guvenlik-analizi' | 'iso-27001' | 'is-ortakligi' | 'hizmet' | 'hizmet-teklif';
   /** Varsa müşterinin mevcut sitesi. */
   website?: string;
 };
@@ -33,6 +33,8 @@ const SOURCE_LABELS: Record<Lead['source'], string> = {
   'guvenlik-analizi': 'Siber güvenlik analizi sayfası',
   'iso-27001': 'ISO 27001 hazırlık sayfası',
   'is-ortakligi': 'İŞ ORTAĞI BAŞVURUSU',
+  hizmet: 'Hizmet sayfası',
+  'hizmet-teklif': 'Reklam sayfası (hizmet teklifi)',
 };
 
 export type LeadResult = { delivered: boolean; reason?: string };

@@ -9,6 +9,8 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SafeImage } from '@/components/SafeImage';
 import { HeroSlider } from '@/components/HeroSlider';
 import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
+import { ALL_SERVICE_CARDS } from '@/content/services';
+import { ServiceIcon } from '@/components/service/ServiceIcon';
 import { SectionHeading } from '@/components/SectionHeading';
 import { ScrollProgress } from '@/components/ScrollProgress';
 import { TrustLinks } from '@/components/TrustLinks';
@@ -26,9 +28,6 @@ import {
   Clock,
   Mail,
   MapPin,
-  Megaphone,
-  Search as SearchIcon,
-  Code,
   Maximize2,
   Minimize2,
   Plus,
@@ -51,14 +50,6 @@ import {
 } from 'lucide-react';
 
 // --- TYPE DEFINITIONS ---
-interface ServiceItem {
-  title: string;
-  desc: string;
-  icon: React.ElementType;
-  color: string;
-  features: string[];
-}
-
 
 /**
  * Önizleme satırı.
@@ -147,30 +138,6 @@ const SHELL = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12';
 
 
 // --- CONSTANTS ---
-const SERVICES_OVERVIEW: ServiceItem[] = [
-  {
-    title: 'Özel Web Tasarım & Geliştirme',
-    desc: 'İşletmenize özel, Lighthouse %100 hızlı, mobil uyumlu ve yüksek dönüşüm odaklı modern web mimarileri.',
-    icon: Code,
-    color: 'from-brand-600 to-brand-500',
-    features: ['Sıfır Altyapı Gecikmesi', 'Özel UX/UI Tasarım', 'Core Web Vitals Optimizasyonu']
-  },
-  {
-    title: 'SEO & Arama Motoru Optimizasyonu',
-    desc: 'Google arama sonuçlarında kalıcı olarak üst sıralara çıkmanızı sağlayan teknik ve içerik tabanlı SEO altyapısı.',
-    icon: SearchIcon,
-    color: 'from-brand-500 to-brand-700',
-    features: ['Teknik SEO Denetimi', 'Anahtar Kelime Stratejisi', 'Organik Trafik Artışı']
-  },
-  {
-    title: 'Meta & Google Reklam Yönetimi',
-    desc: 'Yüksek ROAS odaklı reklam kurguları, Meta Pixel ve Google dönüşüm optimizasyonları ile bütçe verimliliği.',
-    icon: Megaphone,
-    color: 'from-brand-400 to-brand-700',
-    features: ['Hedef Kitle Analizi', 'Dönüşüm Odaklı Kreatifler', 'Detaylı ROI Raporlama']
-  }
-];
-
 
 /**
  * Ana sayfa vitrininde öne çıkan demolar.
@@ -1375,7 +1342,7 @@ const BenchmarkSimulator: FC = () => {
               </span>
             </div>
             <span className="shrink-0 font-mono text-[10px] text-emerald-400 sm:text-[11px]">
-              0,08 ms
+              48 ms
             </span>
           </div>
 
@@ -1397,13 +1364,13 @@ const BenchmarkSimulator: FC = () => {
             <div className="flex justify-between text-slate-400">
               <span>Sunucu yanıtı (TTFB)</span>
               <span className="font-semibold tabular-nums text-emerald-400">
-                {kodaraStatus === 'idle' ? '—' : '0,08 ms'}
+                {kodaraStatus === 'idle' ? '—' : '48 ms'}
               </span>
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Core Web Vitals</span>
               <span className="font-semibold tabular-nums text-emerald-400">
-                {kodaraStatus === 'idle' ? '—' : '100 / 100'}
+                {kodaraStatus === 'idle' ? '—' : 'Tümü yeşil'}
               </span>
             </div>
           </div>
@@ -1944,8 +1911,6 @@ const CONTACT_ROWS = [
 
 // --- MAIN PAGE COMPONENT ---
 export default function Home() {
-  const [leadService, ...supportServices] = SERVICES_OVERVIEW;
-  const LeadIcon = leadService.icon;
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-surface font-sans text-slate-100 selection:bg-brand-500 selection:text-white">
@@ -1959,104 +1924,70 @@ export default function Home() {
       <main className="relative z-10 flex-1 pb-16 sm:pb-20">
         <HeroSlider />
 
-        {/* 01 — Hizmetler: eşit üç kart yerine bir ana + iki yardımcı blok */}
+        {/* 01 — Hizmetler: sekiz hizmetin tamamı. Her kart kendi sayfasına gidiyor;
+            ziyaretçi ana sayfadan doğrudan ilgilendiği başlığa geçebiliyor. */}
         <section id="hizmetler" className={`${SHELL} scroll-mt-28 py-14 sm:py-20 lg:py-24`}>
           <SectionHeading
             index="01"
             eyebrow="Hizmetler"
             size="lg"
-            title="İşletmenizi büyütecek dijital çözümler"
-            desc="Web tasarım, SEO ve reklam yönetimi tek elden. Üç ayrı ajansla uğraşmak yerine tek bir ekiple çalışıyorsunuz."
+            title="Büyüme ve uyum, tek çatı altında"
+            desc="Web tasarım, SEO ve reklam yönetiminden sızma testi, KVKK, ISO ve marka tesciline kadar sekiz başlık. Her biri tek başına alınabilir; birlikte alındığında aynı bilgi iki kez toplanmaz."
           />
 
-          <RevealGroup className="mt-8 grid gap-4 sm:mt-12 lg:grid-cols-12">
-            {/* Ana hizmet: ajansın işinin merkezi, o yüzden iki kat yer kaplıyor */}
-            <RevealItem className="relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-9 lg:col-span-7 lg:row-span-2">
-              <div className="relative">
-                <span
-                  className={`inline-flex w-fit rounded-2xl bg-gradient-to-br ${leadService.color} p-3.5 text-white shadow-lg shadow-brand-950/60`}
+          <RevealGroup className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
+            {ALL_SERVICE_CARDS.map((srv) => (
+              <RevealItem key={srv.href} className="min-w-0">
+                <Link
+                  href={srv.href}
+                  className={`lift group flex h-full min-w-0 flex-col rounded-2xl border p-5 transition-colors sm:p-6 ${
+                    srv.featured
+                      ? 'border-brand-500/40 bg-brand-500/10 hover:border-brand-400/60'
+                      : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/70'
+                  }`}
                 >
-                  <LeadIcon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
-                </span>
+                  <span
+                    className={`w-fit rounded-xl border p-2.5 ${
+                      srv.featured
+                        ? 'border-brand-400/40 bg-brand-500/15 text-brand-200'
+                        : 'border-slate-700 bg-slate-950 text-brand-400'
+                    }`}
+                  >
+                    <ServiceIcon name={srv.icon} className="h-5 w-5" />
+                  </span>
 
-                <h3 className="mt-6 font-display text-2xl font-extrabold leading-[1.05] tracking-[-0.025em] text-white sm:text-4xl">
-                  {leadService.title}
-                </h3>
-                <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-400 sm:text-base">
-                  {leadService.desc}
-                </p>
+                  <h3 className="mt-4 font-display text-base font-bold tracking-tight text-white sm:text-lg">
+                    {srv.title}
+                  </h3>
+                  <p className="mt-2 flex-1 text-[13px] leading-relaxed text-slate-400">
+                    {srv.desc}
+                  </p>
 
-                <ul className="mt-8 grid gap-3.5 border-t border-slate-800 pt-6 text-[15px] text-slate-300 sm:grid-cols-2">
-                  {leadService.features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" aria-hidden="true" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <Link
-                href="#teklif-al"
-                className="group mt-auto flex items-center gap-1.5 pt-8 font-mono text-xs font-semibold uppercase tracking-wider text-brand-400 transition-colors hover:text-brand-300"
-              >
-                Detaylı incele
-                <ArrowRight
-                  className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
-                  aria-hidden="true"
-                />
-              </Link>
-            </RevealItem>
-
-            {/* Yardımcı hizmetler: daha küçük, yatay düzen */}
-            {supportServices.map((srv) => {
-              const IconComp = srv.icon;
-              return (
-                <RevealItem
-                  key={srv.title}
-                  className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/40 p-5 transition-colors hover:border-slate-700 sm:p-6 lg:col-span-5 lg:col-start-8"
-                >
-                  <div className="flex items-start gap-4">
-                    <span
-                      className={`shrink-0 rounded-xl bg-gradient-to-br ${srv.color} p-2.5 text-white`}
-                    >
-                      <IconComp className="h-5 w-5" aria-hidden="true" />
-                    </span>
-
-                    <div className="min-w-0">
-                      <h3 className="font-display text-lg font-bold tracking-tight text-white sm:text-xl">
-                        {srv.title}
-                      </h3>
-                      <p className="mt-2 text-[13px] leading-relaxed text-slate-400">{srv.desc}</p>
-
-                      <ul className="mt-3.5 flex flex-wrap gap-x-3 gap-y-1.5">
-                        {srv.features.map((feat) => (
-                          <li
-                            key={feat}
-                            className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-500"
-                          >
-                            <Check className="h-3 w-3 shrink-0 text-brand-500" aria-hidden="true" />
-                            {feat}
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Link
-                        href="#teklif-al"
-                        className="group mt-4 inline-flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wider text-brand-400 transition-colors hover:text-brand-300"
-                      >
-                        Detaylı incele
-                        <ArrowRight
-                          className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
-                          aria-hidden="true"
-                        />
-                      </Link>
-                    </div>
-                  </div>
-                </RevealItem>
-              );
-            })}
+                  <span className="mt-4 inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-brand-400">
+                    Detaylı incele
+                    <ArrowRight
+                      className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Link>
+              </RevealItem>
+            ))}
           </RevealGroup>
+
+          <Reveal delay={0.05}>
+            <p className="mt-6 text-xs leading-relaxed text-slate-500">
+              Hangi başlığın size uygun olduğundan emin değilseniz{' '}
+              <Link href="/iletisim" className="font-semibold text-brand-300 underline-offset-4 hover:underline">
+                bize yazın
+              </Link>{' '}
+              — kısa bir görüşmede birlikte belirleyelim. Bayilik ve çözüm ortaklığı için{' '}
+              <Link href="/is-ortakligi" className="font-semibold text-brand-300 underline-offset-4 hover:underline">
+                iş ortaklığı sayfasına
+              </Link>{' '}
+              bakabilirsiniz.
+            </p>
+          </Reveal>
         </section>
 
         {/* Reklam bloğu — sola dayalı ızgaradan bilinçli olarak sağa kaçıyor,
@@ -2148,7 +2079,7 @@ export default function Home() {
                       TTFB · Kodara Edge
                     </p>
                     <p className="mt-1 font-display text-5xl font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-6xl">
-                      0,08
+                      48
                       <span className="ml-2 align-baseline text-xl font-bold text-emerald-400 sm:text-2xl">
                         ms
                       </span>

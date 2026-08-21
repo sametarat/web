@@ -56,16 +56,16 @@ export function getSiteUrl(): string {
 }
 
 /**
- * İletişim bilgileri.
- * TODO: telefon ve adresi kendi gerçek bilgilerinle değiştir —
- * bunlar iletişim sayfasında ve demo sayfalarındaki WhatsApp linklerinde kullanılıyor.
+ * İletişim bilgileri — sitedeki tek kaynak.
+ * İletişim sayfası, footer, hizmet sayfaları ve tüm WhatsApp / tel: linkleri
+ * buradan besleniyor.
  */
 export const CONTACT = {
-  email: 'sametaratoglu@gmail.com',
-  /** Uluslararası format, boşluksuz — wa.me linki bunu kullanır. */
-  phoneE164: '905550000000',
+  email: 'iletisim@kodaradigital.com',
+  /** Uluslararası format, boşluksuz — wa.me ve tel: linkleri bunu kullanır. */
+  phoneE164: '905318949915',
   /** Ekranda gösterilen okunabilir hâli. */
-  phoneDisplay: '+90 555 000 00 00',
+  phoneDisplay: '0531 894 99 15',
   city: 'İstanbul, Türkiye',
   workingHours: 'Hafta içi 09:00 – 18:00',
 } as const;
@@ -73,16 +73,15 @@ export const CONTACT = {
 /**
  * Güvenlik hizmetleri hattı.
  *
- * Siber güvenlik analizi ve iş ortaklığı sayfaları bu bilgileri kullanır.
- * Web ajansı tarafından ayrı bir iletişim kanalı olarak tutuluyor; ikisini
- * birleştirmek istersen buradaki değerleri CONTACT ile aynı yap.
+ * Artık ana iletişim hattıyla aynı — tek marka, tek numara, tek gelen kutusu.
+ * Güvenlik tarafını ayrı bir numara/adresle yürütmek istersen aşağıdaki
+ * değerleri değiştirmen yeterli; sayfalar bu sabiti kullanmaya devam eder.
  */
 export const SECURITY_CONTACT = {
-  brand: 'Dijital Güvenlik Analiz & IT Operasyon Merkezi',
-  email: 'dgtlguvenlik@gmail.com',
-  /** Uluslararası format, boşluksuz — wa.me ve tel: linkleri bunu kullanır. */
-  phoneE164: '905318949915',
-  phoneDisplay: '0531 894 99 15',
+  brand: 'Kodara Digital — Güvenlik ve Uyum',
+  email: CONTACT.email,
+  phoneE164: CONTACT.phoneE164,
+  phoneDisplay: CONTACT.phoneDisplay,
 } as const;
 
 /** Güvenlik hattı için WhatsApp linki. */
@@ -114,6 +113,12 @@ export function whatsAppLink(message: string): string {
 /** Sitemap ve navigasyonda kullanılan herkese açık rotalar. */
 export const PUBLIC_ROUTES = [
   '/',
+  // Kurumsal hizmet sayfaları — organik trafik hedefi
+  '/web-tasarim',
+  '/seo',
+  '/reklam-yonetimi',
+  '/kvkk-danismanlik',
+  '/marka-patent-tescili',
   '/pentest',
   '/guvenlik-analizi',
   '/iso-27001',
@@ -121,6 +126,12 @@ export const PUBLIC_ROUTES = [
   '/iletisim',
   '/sss',
   '/ilkeler',
+  // Hizmetlerin reklam açılış sayfaları
+  '/web-tasarim/teklif',
+  '/seo/teklif',
+  '/reklam-yonetimi/teklif',
+  '/kvkk-danismanlik/teklif',
+  '/marka-patent-tescili/teklif',
   '/kvkk',
   '/gizlilik',
   '/cerez-politikasi',

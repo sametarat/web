@@ -67,7 +67,7 @@ export function MobileNav({ links, ctaHref }: { links: NavLink[]; ctaHref: strin
 
             <nav
               aria-label="Mobil menü"
-              className="absolute right-0 top-0 flex h-full w-[min(300px,85vw)] flex-col gap-1 border-l border-slate-800 bg-slate-950 p-5 shadow-2xl"
+              className="absolute right-0 top-0 flex h-full w-[min(300px,85vw)] flex-col gap-1 overflow-y-auto overscroll-contain border-l border-slate-800 bg-slate-950 p-5 shadow-2xl"
             >
               <div className="mb-4 flex items-center justify-between">
                 <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-slate-500">

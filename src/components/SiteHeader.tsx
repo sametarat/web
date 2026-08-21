@@ -2,12 +2,23 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Activity } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { TopAdBanner } from '@/components/TopAdBanner';
 import { MobileNav } from '@/components/MobileNav';
+import { SERVICES } from '@/content/services';
 
 type NavLink = { href: string; label: string };
+
+/**
+ * Hizmet sayfaları. Masaüstü barında tek bir "Hizmetler" linki duruyor
+ * (ana sayfadaki hizmet ızgarasına gidiyor); telefonda ise beş hizmetin
+ * kendi sayfası menüye ekleniyor — orada yer var ve bu, hizmet sayfalarının
+ * tek gezinme yolu.
+ */
+const SERVICE_LINKS: NavLink[] = SERVICES.map((service) => ({
+  href: `/${service.slug}`,
+  label: service.navLabel,
+}));
 
 /**
  * Site geneli üst bar. Ana sayfada bölüm çapaları (#hizmetler), diğer
@@ -27,6 +38,13 @@ export function SiteHeader({
   ctaHref?: string;
   showBanner?: boolean;
 }) {
+  // Aynı adres iki kez görünmesin: sayfa kendi menüsünde bir hizmete zaten
+  // link veriyorsa mükerrer satır (ve mükerrer React anahtarı) oluşmaz.
+  const mobileLinks: NavLink[] = [
+    ...links,
+    ...SERVICE_LINKS.filter((service) => !links.some((link) => link.href === service.href)),
+  ];
+
   return (
     <div className="sticky top-0 z-40 w-full backdrop-blur-md">
       {showBanner && <TopAdBanner />}
@@ -47,16 +65,13 @@ export function SiteHeader({
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:flex items-center gap-1 text-[11px] sm:text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-emerald-500/20">
-              <Activity className="w-3 h-3" /> 100/100
-            </span>
             <Link
               href={ctaHref}
               className="hidden rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md shadow-brand-600/20 transition-all hover:bg-brand-500 sm:inline-block sm:px-3.5 sm:py-2"
             >
               Teklif Al
             </Link>
-            <MobileNav links={links} ctaHref={ctaHref} />
+            <MobileNav links={mobileLinks} ctaHref={ctaHref} />
           </div>
         </div>
       </header>
