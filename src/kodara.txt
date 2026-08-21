@@ -1,0 +1,9 @@
+Kodara Digital için geliştirdiğim CRM yönetim paneli ve entegrasyon bileşeni hazır! 
+
+### Bu CRM Modülünde Neler Var?
+1. **İnteraktif Kanban Pano & Müşteri Listesi:** Meta reklamlarından ve chatbot'tan gelen talepleri aşama aşama (*Yeni, İletişime Geçildi, Görüşme, Teklif, Anlaşıldı, Olumsuz*) takip edebilirsiniz.
+2. **Kazanılan Ciro & Pipeline Analitiği:** Açık tekliflerin toplam tutarını ve reklam dönüşüm oranınızı anlık hesaplar.
+3. **Görüşme Notları & Hızlı Aksiyonlar:** Müşteri kartına tıklayarak not yazabilir, tek tıkla WhatsApp veya Telefon araması başlatabilirsiniz.
+4. **Anlık Telegram Bildirimi Entegrasyonu:** `⚡ Entegrasyon & API` sekmesinden Next.js backend kodunu inceleyebilir ve Telegram botunuzu bağlayabilirsiniz.
+
+Projenize eklerken herhangi bir adımda yardıma ihtiyacınız olursa iletebilirsiniz!

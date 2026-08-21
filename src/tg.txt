@@ -1,0 +1,712 @@
+import React, { useState, useMemo } from 'react';
+
+// --- MOCK BAŞLANGIÇ VERİLERİ ---
+const INITIAL_LEADS = [
+  {
+    id: 'lead-101',
+    fullName: 'Ahmet Yılmaz',
+    company: 'TeknoLojistik A.Ş.',
+    email: 'ahmet@teknolojistik.com',
+    phone: '+90 532 111 2233',
+    service: 'Sızma Testi (Pentest)',
+    source: 'META_ADS',
+    status: 'NEW',
+    value: 85000,
+    notes: 'Meta reklamından form doldurdu. Web uygulaması ve internal network için pentest teklifi istiyor.',
+    createdAt: '2026-08-21T14:30:00Z',
+  },
+  {
+    id: 'lead-102',
+    fullName: 'Selin Kaya',
+    company: 'Fintech Pay Ltd.',
+    email: 'selin.kaya@fintechpay.io',
+    phone: '+90 533 444 5566',
+    service: 'ISO 27001 Danışmanlığı',
+    source: 'CHATBOT',
+    status: 'CONTACTED',
+    value: 120000,
+    notes: 'Chatbot üzerinden ulaştı. Denetim takvimi sıkışık, önümüzdeki hafta içi online toplantı planlandı.',
+    createdAt: '2026-08-21T11:15:00Z',
+  },
+  {
+    id: 'lead-103',
+    fullName: 'Murat Demir',
+    company: 'E-Ticaret Global',
+    email: 'm.demir@etidglobal.com',
+    phone: '+90 505 777 8899',
+    service: 'Özel Web Yazılımı',
+    source: 'FORM',
+    status: 'PROPOSAL',
+    value: 210000,
+    notes: 'Sitedeki teklif formundan geldi. B2B portal yenileme projesi. Teklif dökümanı e-posta ile iletildi.',
+    createdAt: '2026-08-20T09:45:00Z',
+  },
+  {
+    id: 'lead-104',
+    fullName: 'Canan Öztürk',
+    company: 'SiberGüven Bilişim',
+    email: 'canan@siberguven.com.tr',
+    phone: '+90 542 333 4455',
+    service: 'Ücretsiz Güvenlik Analizi',
+    source: 'META_ADS',
+    status: 'WON',
+    value: 45000,
+    notes: 'Ücretsiz analiz sonrası Red Teaming hizmeti satın aldılar. Sözleşme imzalandı.',
+    createdAt: '2026-08-19T16:20:00Z',
+  },
+  {
+    id: 'lead-105',
+    fullName: 'Burak Şahin',
+    company: 'LogiTech Sistemleri',
+    email: 'burak@logitech-sys.com',
+    phone: '+90 530 999 0011',
+    service: 'Sızma Testi (Pentest)',
+    source: 'WHATSAPP',
+    status: 'MEETING',
+    value: 65000,
+    notes: 'WhatsApp hattından yazdı. Mobil uygulama pentest kapsamı netleştiriliyor.',
+    createdAt: '2026-08-18T10:00:00Z',
+  }
+];
+
+const STATUS_CONFIG = {
+  NEW: { label: 'Yeni Lead', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30', badge: 'bg-blue-500' },
+  CONTACTED: { label: 'İletişime Geçildi', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30', badge: 'bg-amber-500' },
+  MEETING: { label: 'Görüşme / Kapsam', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30', badge: 'bg-purple-500' },
+  PROPOSAL: { label: 'Teklif Gönderildi', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30', badge: 'bg-cyan-500' },
+  WON: { label: 'Anlaşıldı (Kazanıldı)', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', badge: 'bg-emerald-500' },
+  LOST: { label: 'Olumsuz (Kaybedildi)', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30', badge: 'bg-rose-500' },
+};
+
+const SOURCE_CONFIG = {
+  META_ADS: { label: 'Meta Reklamları', icon: '📢', color: 'text-blue-400' },
+  CHATBOT: { label: 'AI Chatbot', icon: '🤖', color: 'text-indigo-400' },
+  FORM: { label: 'Web Formu', icon: '🌐', color: 'text-emerald-400' },
+  WHATSAPP: { label: 'WhatsApp', icon: '💬', color: 'text-green-400' },
+};
+
+export default function KodaraCRM() {
+  const [leads, setLeads] = useState(INITIAL_LEADS);
+  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban' | 'list' | 'api-docs'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedService, setSelectedService] = useState('ALL');
+  const [selectedSource, setSelectedSource] = useState('ALL');
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
+  
+  // Telegram Bildirim Ayarları
+  const [telegramConfig, setTelegramConfig] = useState({
+    botToken: '7812345678:AAHxx...YourBotToken',
+    chatId: '-10023456789',
+    enabled: true,
+  });
+
+  // Yeni Lead Form State
+  const [newLeadForm, setNewLeadForm] = useState({
+    fullName: '',
+    company: '',
+    email: '',
+    phone: '',
+    service: 'Sızma Testi (Pentest)',
+    source: 'META_ADS',
+    value: '',
+    notes: '',
+  });
+
+  // Filtrelenmiş Lead Listesi
+  const filteredLeads = useMemo(() => {
+    return leads.filter((lead) => {
+      const matchesSearch =
+        lead.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.phone.includes(searchTerm);
+
+      const matchesService = selectedService === 'ALL' || lead.service === selectedService;
+      const matchesSource = selectedSource === 'ALL' || lead.source === selectedSource;
+
+      return matchesSearch && matchesService && matchesSource;
+    });
+  }, [leads, searchTerm, selectedService, selectedSource]);
+
+  // İstatistik Hesaplamaları
+  const stats = useMemo(() => {
+    const total = leads.length;
+    const totalValue = leads.reduce((acc, curr) => acc + (curr.value || 0), 0);
+    const wonCount = leads.filter((l) => l.status === 'WON').length;
+    const wonValue = leads.filter((l) => l.status === 'WON').reduce((acc, curr) => acc + (curr.value || 0), 0);
+    const metaCount = leads.filter((l) => l.source === 'META_ADS').length;
+    const chatbotCount = leads.filter((l) => l.source === 'CHATBOT').length;
+
+    return { total, totalValue, wonCount, wonValue, metaCount, chatbotCount };
+  }, [leads]);
+
+  // Durum Değiştirme
+  const handleStatusChange = (leadId, newStatus) => {
+    setLeads((prev) =>
+      prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
+    );
+    if (selectedLead && selectedLead.id === leadId) {
+      setSelectedLead((prev) => ({ ...prev, status: newStatus }));
+    }
+  };
+
+  // Not Güncelleme
+  const handleNoteUpdate = (leadId, newNotes) => {
+    setLeads((prev) =>
+      prev.map((l) => (l.id === leadId ? { ...l, notes: newNotes } : l))
+    );
+    if (selectedLead && selectedLead.id === leadId) {
+      setSelectedLead((prev) => ({ ...prev, notes: newNotes }));
+    }
+  };
+
+  // Yeni Lead Ekleme
+  const handleCreateLead = (e) => {
+    e.preventDefault();
+    if (!newLeadForm.fullName) return;
+
+    const createdLead = {
+      id: `lead-${Date.now()}`,
+      ...newLeadForm,
+      value: Number(newLeadForm.value) || 0,
+      status: 'NEW',
+      createdAt: new Date().toISOString(),
+    };
+
+    setLeads([createdLead, ...leads]);
+    setIsNewLeadModalOpen(false);
+    setNewLeadForm({
+      fullName: '',
+      company: '',
+      email: '',
+      phone: '',
+      service: 'Sızma Testi (Pentest)',
+      source: 'META_ADS',
+      value: '',
+      notes: '',
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased p-4 md:p-8">
+      {/* --- HEADER --- */}
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-cyan-500/20">
+              K
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Kodara Lead CRM</h1>
+              <p className="text-xs text-slate-400">Meta Ads & Chatbot Gelen Müşteri Takip Paneli</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab & Yeni Ekle Butonları */}
+        <div className="flex items-center gap-3">
+          <div className="bg-slate-900 border border-slate-800 p-1 rounded-xl flex items-center">
+            <button
+              onClick={() => setActiveTab('kanban')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'kanban' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Kanban Pano
+            </button>
+            <button
+              onClick={() => setActiveTab('list')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'list' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Müşteri Listesi
+            </button>
+            <button
+              onClick={() => setActiveTab('api-docs')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'api-docs' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚡ Entegrasyon & API
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsNewLeadModalOpen(true)}
+            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2"
+          >
+            <span>+</span> Manuel Lead Ekle
+          </button>
+        </div>
+      </header>
+
+      {/* --- KPI ÖZET KARTLARI --- */}
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+          <span className="text-xs text-slate-400 font-medium">Toplam Potansiyel Lead</span>
+          <div className="text-2xl font-bold text-white mt-1">{stats.total}</div>
+          <span className="text-[10px] text-cyan-400 mt-1 block">Meta: {stats.metaCount} | Chatbot: {stats.chatbotCount}</span>
+        </div>
+
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+          <span className="text-xs text-slate-400 font-medium">Toplam Pipeline Değeri</span>
+          <div className="text-2xl font-bold text-cyan-400 mt-1">
+            ₺{stats.totalValue.toLocaleString('tr-TR')}
+          </div>
+          <span className="text-[10px] text-slate-500 mt-1 block">Açık + Teklif Aşaması</span>
+        </div>
+
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+          <span className="text-xs text-slate-400 font-medium">Kazanılan Müşteri</span>
+          <div className="text-2xl font-bold text-emerald-400 mt-1">{stats.wonCount} Adet</div>
+          <span className="text-[10px] text-emerald-500/80 mt-1 block">
+            Ciro: ₺{stats.wonValue.toLocaleString('tr-TR')}
+          </span>
+        </div>
+
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-sm">
+          <span className="text-xs text-slate-400 font-medium">Dönüşüm Oranı</span>
+          <div className="text-2xl font-bold text-purple-400 mt-1">
+            %{stats.total > 0 ? Math.round((stats.wonCount / stats.total) * 100) : 0}
+          </div>
+          <span className="text-[10px] text-purple-400/70 mt-1 block">Reklam Verimliliği</span>
+        </div>
+      </div>
+
+      {/* --- FİLTRE VE ARAMA BAR --- */}
+      <div className="max-w-7xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Arama Input */}
+        <div className="w-full md:w-80 relative">
+          <input
+            type="text"
+            placeholder="İsim, Şirket, E-posta veya Tel ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+          />
+        </div>
+
+        {/* Filtre Açılır Menüler */}
+        <div className="w-full md:w-auto flex flex-wrap items-center gap-3">
+          <select
+            value={selectedService}
+            onChange={(e) => setSelectedService(e.target.value)}
+            className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="ALL">Tüm Hizmetler</option>
+            <option value="Sızma Testi (Pentest)">Sızma Testi (Pentest)</option>
+            <option value="ISO 27001 Danışmanlığı">ISO 27001 Danışmanlığı</option>
+            <option value="Özel Web Yazılımı">Özel Web Yazılımı</option>
+            <option value="Ücretsiz Güvenlik Analizi">Ücretsiz Güvenlik Analizi</option>
+          </select>
+
+          <select
+            value={selectedSource}
+            onChange={(e) => setSelectedSource(e.target.value)}
+            className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="ALL">Tüm Kaynaklar</option>
+            <option value="META_ADS">📢 Meta Reklamları</option>
+            <option value="CHATBOT">🤖 AI Chatbot</option>
+            <option value="FORM">🌐 Web Formu</option>
+            <option value="WHATSAPP">💬 WhatsApp</option>
+          </select>
+        </div>
+      </div>
+
+      {/* --- SEKMELER (KANBAN / LISTE / API DOCS) --- */}
+      <div className="max-w-7xl mx-auto">
+        {/* TAB 1: KANBAN PANO */}
+        {activeTab === 'kanban' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 overflow-x-auto pb-6">
+            {Object.keys(STATUS_CONFIG).map((statusKey) => {
+              const statusLeads = filteredLeads.filter((l) => l.status === statusKey);
+              const config = STATUS_CONFIG[statusKey];
+
+              return (
+                <div
+                  key={statusKey}
+                  className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-3 flex flex-col min-w-[220px]"
+                >
+                  {/* Sutun Basligi */}
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${config.badge}`} />
+                      <h3 className="text-xs font-semibold text-slate-300">{config.label}</h3>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">
+                      {statusLeads.length}
+                    </span>
+                  </div>
+
+                  {/* Lead Kartlari */}
+                  <div className="flex-1 space-y-3 overflow-y-auto max-h-[600px] pr-1">
+                    {statusLeads.map((lead) => (
+                      <div
+                        key={lead.id}
+                        onClick={() => setSelectedLead(lead)}
+                        className="bg-slate-900 border border-slate-800 hover:border-cyan-500/50 rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.02] shadow-md group"
+                      >
+                        <div className="flex items-center justify-between text-[10px] mb-2">
+                          <span className={`font-medium ${SOURCE_CONFIG[lead.source]?.color || 'text-slate-400'}`}>
+                            {SOURCE_CONFIG[lead.source]?.icon} {SOURCE_CONFIG[lead.source]?.label}
+                          </span>
+                          <span className="text-slate-500">
+                            {new Date(lead.createdAt).toLocaleDateString('tr-TR')}
+                          </span>
+                        </div>
+
+                        <h4 className="text-xs font-bold text-white group-hover:text-cyan-400 transition-colors">
+                          {lead.fullName}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 font-medium truncate">{lead.company}</p>
+
+                        <div className="mt-2 text-[10px] bg-slate-950/70 rounded-lg p-1.5 border border-slate-800 text-slate-300">
+                          🎯 {lead.service}
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-cyan-400">
+                            ₺{lead.value ? lead.value.toLocaleString('tr-TR') : '0'}
+                          </span>
+                          <span className="text-slate-500 hover:text-slate-300">Detay →</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {statusLeads.length === 0 && (
+                      <div className="text-center py-8 text-[11px] text-slate-600 border border-dashed border-slate-800/60 rounded-xl">
+                        Lead bulunmuyor
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* TAB 2: MÜŞTERİ LİSTESİ */}
+        {activeTab === 'list' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="p-4">Ad Soyad / Şirket</th>
+                    <th className="p-4">Hizmet Talebi</th>
+                    <th className="p-4">Kaynak</th>
+                    <th className="p-4">Durum</th>
+                    <th className="p-4">Tahmini Değer</th>
+                    <th className="p-4">İletişim</th>
+                    <th className="p-4 text-right">Aksiyon</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {filteredLeads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="p-4">
+                        <div className="font-semibold text-white">{lead.fullName}</div>
+                        <div className="text-slate-400 text-[11px]">{lead.company}</div>
+                      </td>
+                      <td className="p-4 text-slate-300">{lead.service}</td>
+                      <td className="p-4">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-300">
+                          {SOURCE_CONFIG[lead.source]?.icon} {SOURCE_CONFIG[lead.source]?.label}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-lg border text-[10px] font-medium ${
+                            STATUS_CONFIG[lead.status]?.color
+                          }`}
+                        >
+                          {STATUS_CONFIG[lead.status]?.label}
+                        </span>
+                      </td>
+                      <td className="p-4 font-semibold text-cyan-400">
+                        ₺{lead.value ? lead.value.toLocaleString('tr-TR') : '0'}
+                      </td>
+                      <td className="p-4">
+                        <div className="text-slate-300">{lead.phone}</div>
+                        <div className="text-slate-500 text-[10px]">{lead.email}</div>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => setSelectedLead(lead)}
+                          className="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1.5 rounded-lg text-[11px] transition-colors"
+                        >
+                          Yönet
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: TELEGRAM VE META API DOKÜMANTASYONU */}
+        {activeTab === 'api-docs' && (
+          <div className="space-y-6">
+            {/* Telegram Bot Konfigürasyonu */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+              <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                <span>🤖</span> Telegram Anlık Bildirim Kurulumu
+              </h3>
+              <p className="text-xs text-slate-400 mb-4">
+                Meta Ads veya Chatbot üzerinden yeni bir müşteri formu doldurulduğunda telefonunuza anında bildirim düşer.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Telegram Bot Token</label>
+                  <input
+                    type="text"
+                    value={telegramConfig.botToken}
+                    onChange={(e) => setTelegramConfig({ ...telegramConfig, botToken: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Telegram Chat / Grup ID</label>
+                  <input
+                    type="text"
+                    value={telegramConfig.chatId}
+                    onChange={(e) => setTelegramConfig({ ...telegramConfig, chatId: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Next.js API Entegrasyon Kodu */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+              <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                <span>💻</span> Next.js API Route Kodu (`app/api/leads/route.ts`)
+              </h3>
+              <p className="text-xs text-slate-400 mb-4">
+                Meta Webhook veya Chatbot frontend'iniz doğrudan bu API uç noktasına POST atabilir.
+              </p>
+
+              <pre className="bg-slate-950 border border-slate-800 p-4 rounded-xl text-[11px] text-cyan-300 font-mono overflow-x-auto leading-relaxed">
+{`import { NextResponse } from 'next/server';
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { fullName, email, phone, company, service, source, notes } = body;
+
+    // 1. CRM Veri Tabanına Kayıt (Prisma / PostgreSQL)
+    // const lead = await prisma.lead.create({ data: { ... } });
+
+    // 2. Telegram Anlık Bildirim Gönderimi
+    const TELEGRAM_BOT_TOKEN = "${telegramConfig.botToken}";
+    const TELEGRAM_CHAT_ID = "${telegramConfig.chatId}";
+
+    const message = \`🚀 *YENİ LEAD DÜŞTÜ!*\\n\\n\` +
+      \`👤 *Ad Soyad:* \${fullName}\\n\` +
+      \`🏢 *Şirket:* \${company || 'Belirtilmedi'}\\n\` +
+      \`📞 *Telefon:* \${phone}\\n\` +
+      \`✉️ *E-posta:* \${email}\\n\` +
+      \`🎯 *Hizmet:* \${service}\\n\` +
+      \`📍 *Kaynak:* \${source}\`;
+
+    await fetch(\`https://api.telegram.org/bot\${TELEGRAM_BOT_TOKEN}/sendMessage\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'Markdown',
+      }),
+    });
+
+    return NextResponse.json({ success: true, message: 'Lead oluşturuldu ve Telegram bildirimi gönderildi.' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
+  }
+}`}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* --- LEAD DETAY MODAL --- */}
+      {selectedLead && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setSelectedLead(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+              <span>{SOURCE_CONFIG[selectedLead.source]?.icon}</span>
+              <span>{SOURCE_CONFIG[selectedLead.source]?.label}</span>
+              <span>•</span>
+              <span>{new Date(selectedLead.createdAt).toLocaleString('tr-TR')}</span>
+            </div>
+
+            <h3 className="text-xl font-bold text-white">{selectedLead.fullName}</h3>
+            <p className="text-xs text-slate-400 mb-4">{selectedLead.company}</p>
+
+            <div className="space-y-4">
+              {/* Durum Değiştirici */}
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Süreç Durumu</label>
+                <select
+                  value={selectedLead.status}
+                  onChange={(e) => handleStatusChange(selectedLead.id, e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:outline-none focus:border-cyan-500 font-semibold"
+                >
+                  {Object.keys(STATUS_CONFIG).map((st) => (
+                    <option key={st} value={st}>
+                      {STATUS_CONFIG[st].label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Hızlı İletişim Butonları */}
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href={`tel:${selectedLead.phone}`}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs text-center py-2 rounded-xl transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  📞 Ara ({selectedLead.phone})
+                </a>
+                <a
+                  href={`https://wa.me/${selectedLead.phone?.replace(/[^0-0]/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs text-center py-2 rounded-xl transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  💬 WhatsApp Mesajı
+                </a>
+              </div>
+
+              {/* Not Alanı */}
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Görüşme Notları / Takip Bilgisi</label>
+                <textarea
+                  rows={4}
+                  value={selectedLead.notes || ''}
+                  onChange={(e) => handleNoteUpdate(selectedLead.id, e.target.value)}
+                  placeholder="Müşteriyle yapılan görüşme detaylarını buraya yazın..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs px-5 py-2 rounded-xl transition-all"
+              >
+                Kaydet ve Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- MANUEL LEAD EKLE MODAL --- */}
+      {isNewLeadModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setIsNewLeadModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-4">Manuel Potansiyel Müşteri Ekle</h3>
+
+            <form onSubmit={handleCreateLead} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Ad Soyad *</label>
+                <input
+                  type="text"
+                  required
+                  value={newLeadForm.fullName}
+                  onChange={(e) => setNewLeadForm({ ...newLeadForm, fullName: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 mb-1">Şirket Adı</label>
+                  <input
+                    type="text"
+                    value={newLeadForm.company}
+                    onChange={(e) => setNewLeadForm({ ...newLeadForm, company: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Telefon</label>
+                  <input
+                    type="text"
+                    value={newLeadForm.phone}
+                    onChange={(e) => setNewLeadForm({ ...newLeadForm, phone: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 mb-1">Hizmet</label>
+                  <select
+                    value={newLeadForm.service}
+                    onChange={(e) => setNewLeadForm({ ...newLeadForm, service: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="Sızma Testi (Pentest)">Sızma Testi (Pentest)</option>
+                    <option value="ISO 27001 Danışmanlığı">ISO 27001 Danışmanlığı</option>
+                    <option value="Özel Web Yazılımı">Özel Web Yazılımı</option>
+                    <option value="Ücretsiz Güvenlik Analizi">Ücretsiz Güvenlik Analizi</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Tahmini Değer (₺)</label>
+                  <input
+                    type="number"
+                    value={newLeadForm.value}
+                    onChange={(e) => setNewLeadForm({ ...newLeadForm, value: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsNewLeadModalOpen(false)}
+                  className="px-4 py-2 text-slate-400 hover:text-white"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-2 rounded-xl transition-all"
+                >
+                  Lead Oluştur
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

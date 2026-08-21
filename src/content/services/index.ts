@@ -28,8 +28,24 @@ export const SERVICE_SLUGS = SERVICES.map((s) => s.slug);
  * `/is-ortakligi` bilinçli olarak burada yok: o son müşteriye değil bayiye
  * hitap ediyor, ana hizmet ızgarasında yer alması ziyaretçiyi şaşırtır.
  */
+export type ServiceGroup = 'buyume' | 'guvenlik';
+
+export const SERVICE_GROUPS: { id: ServiceGroup; label: string; desc: string }[] = [
+  {
+    id: 'buyume',
+    label: 'Büyüme',
+    desc: 'Daha çok görünmek, daha çok müşteriye ulaşmak ve gelen trafiği satışa çevirmek için.',
+  },
+  {
+    id: 'guvenlik',
+    label: 'Güvenlik & Uyum',
+    desc: 'Denetimden geçmek, veriyi korumak ve marka ile sistemleri yasal zemine oturtmak için.',
+  },
+];
+
 export type ServiceCard = {
   href: string;
+  group: ServiceGroup;
   /** Menüdeki kısa ad. */
   label: string;
   /** Karttaki başlık. */
@@ -43,6 +59,7 @@ export type ServiceCard = {
 const SECURITY_CARDS: ServiceCard[] = [
   {
     href: '/pentest',
+    group: 'guvenlik',
     label: 'Sızma Testi',
     title: 'Sızma Testi (Pentest)',
     desc: 'Web, API, iç ağ ve dış ağ üzerinde elle yürütülen sızma testi. CVSS puanlı bulgu raporu ve ücretsiz doğrulama testi.',
@@ -50,6 +67,7 @@ const SECURITY_CARDS: ServiceCard[] = [
   },
   {
     href: '/guvenlik-analizi',
+    group: 'guvenlik',
     label: 'Güvenlik Analizi',
     title: 'Altyapı Güvenlik Analizi',
     desc: 'Sabit bedelli ön denetim: sızma kontrolü, ağ izolasyonu ve yedekleme incelemesi. Yatırım kararından önce risk raporu.',
@@ -57,6 +75,7 @@ const SECURITY_CARDS: ServiceCard[] = [
   },
   {
     href: '/iso-27001',
+    group: 'guvenlik',
     label: 'ISO 27001',
     title: 'ISO 27001 Hazırlık',
     desc: 'Boşluk analizi, dokümantasyon yönlendirmesi, iç denetim ve belgelendirme denetimine refakat.',
@@ -67,6 +86,8 @@ const SECURITY_CARDS: ServiceCard[] = [
 export const ALL_SERVICE_CARDS: ServiceCard[] = [
   ...SERVICES.map((s, i) => ({
     href: `/${s.slug}`,
+    // İlk üç hizmet büyüme tarafı, kalan ikisi (KVKK, marka-patent) uyum tarafı.
+    group: (i < 3 ? 'buyume' : 'guvenlik') as ServiceGroup,
     label: s.navLabel,
     title: s.card.title,
     desc: s.card.desc,
@@ -78,3 +99,8 @@ export const ALL_SERVICE_CARDS: ServiceCard[] = [
 ];
 
 export type { ServiceContent, ServiceIcon } from './types';
+
+/** Verilen gruptaki hizmet kartları — ana sayfa iki blok hâlinde gösteriyor. */
+export function cardsByGroup(group: ServiceGroup): ServiceCard[] {
+  return ALL_SERVICE_CARDS.filter((c) => c.group === group);
+}

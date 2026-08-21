@@ -56,6 +56,122 @@ type MessagePart = {
   state?: string;
 };
 
+/**
+ * Asistan çalışmadığında devreye giren yedek lead formu.
+ *
+ * Sohbet balonunun asıl işi sohbet etmek değil, iletişim bilgisi toplamak.
+ * Groq anahtarı tanımsızsa, kota dolmuşsa ya da model hata verirse ziyaretçiyi
+ * "asistan devre dışı" mesajıyla baş başa bırakmak lead kaybetmek demek —
+ * bunun yerine iki alanlık bir form gösteriyoruz.
+ */
+function FallbackLeadForm() {
+  const [form, setForm] = useState({ name: '', email: '', phone: '', company: '' });
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  if (state === 'sent') {
+    return (
+      <div className="flex items-start gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2.5">
+        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+        <p className="text-xs leading-relaxed text-emerald-200">
+          Bilgileriniz bize ulaştı. En geç 1 iş günü içinde dönüş yapacağız.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="space-y-2 rounded-xl border border-slate-700 bg-slate-950/60 p-3"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        if (state === 'sending') return;
+        setState('sending');
+        try {
+          const res = await fetch('/api/lead', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...form, source: 'form', service: 'Sohbet balonu (asistan kapalı)' }),
+          });
+          if (!res.ok) throw new Error();
+          setState('sent');
+        } catch {
+          setState('error');
+        }
+      }}
+    >
+      <p className="text-xs leading-relaxed text-slate-300">
+        Bilgilerinizi bırakın, biz size dönelim:
+      </p>
+
+      {/* Bot tuzağı */}
+      <input
+        type="text"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute left-[-9999px]"
+        value={form.company}
+        onChange={(e) => setForm({ ...form, company: e.target.value })}
+      />
+
+      <label className="sr-only" htmlFor="cb-name">Ad Soyad</label>
+      <input
+        id="cb-name"
+        type="text"
+        required
+        autoComplete="name"
+        placeholder="Ad Soyad"
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-brand-400 focus:outline-none"
+      />
+      <label className="sr-only" htmlFor="cb-mail">E-posta</label>
+      <input
+        id="cb-mail"
+        type="email"
+        required
+        autoComplete="email"
+        placeholder="E-posta"
+        value={form.email}
+        onChange={(e) => setForm({ ...form, email: e.target.value })}
+        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-brand-400 focus:outline-none"
+      />
+      <label className="sr-only" htmlFor="cb-tel">Telefon</label>
+      <input
+        id="cb-tel"
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        placeholder="Telefon (isteğe bağlı)"
+        value={form.phone}
+        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-brand-400 focus:outline-none"
+      />
+
+      {state === 'error' && (
+        <p role="alert" className="text-[11px] text-red-300">
+          Gönderilemedi. Lütfen tekrar deneyin ya da doğrudan arayın.
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={state === 'sending'}
+        className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-brand-500 disabled:opacity-60"
+      >
+        {state === 'sending' ? (
+          <>
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            Gönderiliyor...
+          </>
+        ) : (
+          'Bilgilerimi Gönder'
+        )}
+      </button>
+    </form>
+  );
+}
+
 export default function CyberChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -192,6 +308,9 @@ export default function CyberChatbot() {
                 </button>
               </div>
             )}
+
+            {/* Asistan çalışmıyorsa ziyaretçiyi elimizden kaçırmayalım. */}
+            {error && <FallbackLeadForm />}
 
             <div ref={scrollAnchorRef} />
           </div>

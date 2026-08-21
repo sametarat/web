@@ -9,7 +9,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SafeImage } from '@/components/SafeImage';
 import { HeroSlider } from '@/components/HeroSlider';
 import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
-import { ALL_SERVICE_CARDS } from '@/content/services';
+import { SERVICE_GROUPS, cardsByGroup } from '@/content/services';
 import { ServiceIcon } from '@/components/service/ServiceIcon';
 import { SectionHeading } from '@/components/SectionHeading';
 import { ScrollProgress } from '@/components/ScrollProgress';
@@ -1924,59 +1924,73 @@ export default function Home() {
       <main className="relative z-10 flex-1 pb-16 sm:pb-20">
         <HeroSlider />
 
-        {/* 01 — Hizmetler: sekiz hizmetin tamamı. Her kart kendi sayfasına gidiyor;
-            ziyaretçi ana sayfadan doğrudan ilgilendiği başlığa geçebiliyor. */}
+        {/* 01 — Hizmetler: sekiz başlık iki gruba ayrılmış hâlde.
+            Düz bir sekizli ızgara ziyaretçiyi seçim yorgunluğuna sokuyordu;
+            "büyümek mi istiyorum, korunmak mı" ayrımı kararı ikiye indiriyor. */}
         <section id="hizmetler" className={`${SHELL} scroll-mt-28 py-14 sm:py-20 lg:py-24`}>
           <SectionHeading
             index="01"
             eyebrow="Hizmetler"
             size="lg"
-            title="Büyüme ve uyum, tek çatı altında"
-            desc="Web tasarım, SEO ve reklam yönetiminden sızma testi, KVKK, ISO ve marka tesciline kadar sekiz başlık. Her biri tek başına alınabilir; birlikte alındığında aynı bilgi iki kez toplanmaz."
+            title="İki ihtiyaç, tek ekip"
+            desc="İşletmelerin bizden istediği şey iki başlıkta toplanıyor: büyümek ve korunmak. İkisini de aynı ekip yürütüyor, aynı bilgiyi iki kez toplamıyoruz."
           />
 
-          <RevealGroup className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
-            {ALL_SERVICE_CARDS.map((srv) => (
-              <RevealItem key={srv.href} className="min-w-0">
-                <Link
-                  href={srv.href}
-                  className={`lift group flex h-full min-w-0 flex-col rounded-2xl border p-5 transition-colors sm:p-6 ${
-                    srv.featured
-                      ? 'border-brand-500/40 bg-brand-500/10 hover:border-brand-400/60'
-                      : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/70'
-                  }`}
-                >
-                  <span
-                    className={`w-fit rounded-xl border p-2.5 ${
-                      srv.featured
-                        ? 'border-brand-400/40 bg-brand-500/15 text-brand-200'
-                        : 'border-slate-700 bg-slate-950 text-brand-400'
-                    }`}
-                  >
-                    <ServiceIcon name={srv.icon} className="h-5 w-5" />
-                  </span>
+          <div className="mt-8 space-y-10 sm:mt-12 sm:space-y-14">
+            {SERVICE_GROUPS.map((group) => {
+              const cards = cardsByGroup(group.id);
+              return (
+                <div key={group.id} className="min-w-0">
+                  <Reveal>
+                    <div className="flex min-w-0 flex-col gap-2 border-l-2 border-brand-500/50 pl-4 sm:pl-5">
+                      <h3 className="font-display text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                        {group.label}
+                        <span className="ml-2.5 align-middle font-mono text-[11px] font-semibold tracking-wider text-slate-500">
+                          {cards.length} hizmet
+                        </span>
+                      </h3>
+                      <p className="max-w-2xl text-sm leading-relaxed text-slate-400">
+                        {group.desc}
+                      </p>
+                    </div>
+                  </Reveal>
 
-                  <h3 className="mt-4 font-display text-base font-bold tracking-tight text-white sm:text-lg">
-                    {srv.title}
-                  </h3>
-                  <p className="mt-2 flex-1 text-[13px] leading-relaxed text-slate-400">
-                    {srv.desc}
-                  </p>
+                  <RevealGroup className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {cards.map((srv) => (
+                      <RevealItem key={srv.href} className="min-w-0">
+                        <Link
+                          href={srv.href}
+                          className="lift group flex h-full min-w-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/40 p-5 transition-colors hover:border-brand-500/40 hover:bg-slate-900/70 sm:p-6"
+                        >
+                          <span className="w-fit rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-brand-400">
+                            <ServiceIcon name={srv.icon} className="h-5 w-5" />
+                          </span>
 
-                  <span className="mt-4 inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-brand-400">
-                    Detaylı incele
-                    <ArrowRight
-                      className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
-                      aria-hidden="true"
-                    />
-                  </span>
-                </Link>
-              </RevealItem>
-            ))}
-          </RevealGroup>
+                          <h4 className="mt-4 font-display text-base font-bold tracking-tight text-white sm:text-lg">
+                            {srv.title}
+                          </h4>
+                          <p className="mt-2 flex-1 text-[13px] leading-relaxed text-slate-400">
+                            {srv.desc}
+                          </p>
+
+                          <span className="mt-4 inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-brand-400">
+                            Detaylı incele
+                            <ArrowRight
+                              className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </Link>
+                      </RevealItem>
+                    ))}
+                  </RevealGroup>
+                </div>
+              );
+            })}
+          </div>
 
           <Reveal delay={0.05}>
-            <p className="mt-6 text-xs leading-relaxed text-slate-500">
+            <p className="mt-8 text-xs leading-relaxed text-slate-500">
               Hangi başlığın size uygun olduğundan emin değilseniz{' '}
               <Link href="/iletisim" className="font-semibold text-brand-300 underline-offset-4 hover:underline">
                 bize yazın

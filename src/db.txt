@@ -1,0 +1,32 @@
+// prisma/schema.prisma
+
+enum LeadStatus {
+  NEW          // Yeni Düşen
+  CONTACTED    // İletişime Geçildi
+  MEETING      // Görüşme / Kapsam Belirleniyor
+  PROPOSAL     // Teklif Gönderildi
+  WON          // Anlaşıldı (Müşteri)
+  LOST         // Olumsuz
+}
+
+enum LeadSource {
+  META_ADS     // Meta / Reklamlar
+  CHATBOT      // Sitedeki Chatbot
+  FORM         // Açılış Sayfası Formu
+  WHATSAPP     // WhatsApp Hattı
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  fullName    String
+  email       String?
+  phone       String?
+  company     String?
+  service     String     // Örn: Pentest, Web Yazılım, ISO 27001, Ücretsiz Analiz
+  status      LeadStatus @default(NEW)
+  source      LeadSource @default(META_ADS)
+  value       Float?     // Tahmini Proje Değeri (TL)
+  notes       String?    // Dahili Notlar / Görüşme Geçmişi
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
