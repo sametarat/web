@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { trackLead } from '@/lib/track';
+import { TurnstileField, isTurnstileEnabled } from '@/components/TurnstileField';
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 
 const SERVICES = [
@@ -27,10 +28,17 @@ export const LeadCaptureSection: React.FC = () => {
   });
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (status === 'sending') return;
+
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setStatus('error');
+      setErrorMessage('Lütfen güvenlik doğrulamasını tamamlayın.');
+      return;
+    }
 
     setStatus('sending');
     setErrorMessage('');
@@ -39,7 +47,7 @@ export const LeadCaptureSection: React.FC = () => {
       const response = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, turnstileToken }),
       });
 
       if (!response.ok) {
@@ -54,6 +62,7 @@ export const LeadCaptureSection: React.FC = () => {
       setErrorMessage(
         error instanceof Error ? error.message : 'Beklenmeyen bir hata oluştu.',
       );
+      setTurnstileToken('');
     }
   };
 
@@ -190,6 +199,8 @@ export const LeadCaptureSection: React.FC = () => {
                 {errorMessage} Dilerseniz doğrudan e-posta ile de ulaşabilirsiniz.
               </p>
             )}
+
+            <TurnstileField onToken={setTurnstileToken} className="mt-4 overflow-x-auto" />
 
             <button
               type="submit"

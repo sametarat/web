@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useId, useState } from 'react';
 import { trackLead } from '@/lib/track';
+import { TurnstileField, isTurnstileEnabled } from '@/components/TurnstileField';
 import { ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -44,10 +45,17 @@ export function ServiceForm({
   });
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (status === 'sending') return;
+
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setStatus('error');
+      setErrorMessage('Lütfen güvenlik doğrulamasını tamamlayın.');
+      return;
+    }
 
     setStatus('sending');
     setErrorMessage('');
@@ -56,7 +64,7 @@ export function ServiceForm({
       const response = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, service, source }),
+        body: JSON.stringify({ ...form, service, source, turnstileToken }),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => null);
@@ -67,6 +75,7 @@ export function ServiceForm({
     } catch (error) {
       setStatus('error');
       setErrorMessage(error instanceof Error ? error.message : 'Beklenmeyen bir hata oluştu.');
+      setTurnstileToken('');
     }
   };
 
@@ -200,6 +209,8 @@ export function ServiceForm({
           {errorMessage}
         </p>
       )}
+
+      <TurnstileField onToken={setTurnstileToken} className="mt-3 overflow-x-auto" />
 
       <button
         type="submit"

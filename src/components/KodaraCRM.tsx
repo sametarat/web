@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Check, Copy } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { LEAD_STATUSES, type LeadStatus, type StoredLead } from '@/lib/leadStore';
 
@@ -58,6 +59,31 @@ function formatDate(ms: number): string {
   }
 }
 
+function sourceLabel(source: string): string {
+  return SOURCE_LABELS[source] ?? source;
+}
+
+type SortKey = 'newest' | 'oldest' | 'name';
+
+const SORT_OPTIONS: { id: SortKey; label: string }[] = [
+  { id: 'newest', label: 'En yeni' },
+  { id: 'oldest', label: 'En eski' },
+  { id: 'name', label: 'Ada göre (A-Z)' },
+];
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** CSV hücresi: her değer tırnaklanır, içerideki tırnak ikizlenir. */
+function csvCell(value: unknown): string {
+  const text = String(value ?? '').replace(/[\r\n]+/g, ' ');
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function csvDateStamp(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 async function readError(res: Response, fallback: string): Promise<string> {
   try {
     const data = (await res.json()) as { error?: string };
@@ -84,6 +110,8 @@ export default function KodaraCRM() {
 
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [sort, setSort] = useState<SortKey>('newest');
 
   const load = useCallback(async (): Promise<'ok' | 'unauthorized' | 'error'> => {
     setLoading(true);
@@ -158,6 +186,8 @@ export default function KodaraCRM() {
     setData(null);
     setQuery('');
     setStatusFilter('all');
+    setSourceFilter('all');
+    setSort('newest');
   }
 
   /** Tek bir lead'i yerelde değiştirir. */
@@ -203,6 +233,10 @@ export default function KodaraCRM() {
       setQuery={setQuery}
       statusFilter={statusFilter}
       setStatusFilter={setStatusFilter}
+      sourceFilter={sourceFilter}
+      setSourceFilter={setSourceFilter}
+      sort={sort}
+      setSort={setSort}
       onRefresh={load}
       onLogout={handleLogout}
       patchLocal={patchLocal}
@@ -294,6 +328,10 @@ function LeadBoard({
   setQuery,
   statusFilter,
   setStatusFilter,
+  sourceFilter,
+  setSourceFilter,
+  sort,
+  setSort,
   onRefresh,
   onLogout,
   patchLocal,
@@ -306,6 +344,10 @@ function LeadBoard({
   setQuery: (v: string) => void;
   statusFilter: string;
   setStatusFilter: (v: string) => void;
+  sourceFilter: string;
+  setSourceFilter: (v: string) => void;
+  sort: SortKey;
+  setSort: (v: SortKey) => void;
   onRefresh: () => void;
   onLogout: () => void;
   patchLocal: (id: string, patch: Partial<StoredLead>) => void;
@@ -321,12 +363,88 @@ function LeadBoard({
       .filter(Boolean)
       .some((field) => fold(String(field)).includes(needle));
 
+  const matchesStatus = (lead: StoredLead) =>
+    statusFilter === 'all' || lead.status === statusFilter;
+  const matchesSource = (lead: StoredLead) =>
+    sourceFilter === 'all' || lead.source === sourceFilter;
+
   const searched = leads.filter(matchesQuery);
-  const visible = searched.filter(
-    (lead) => statusFilter === 'all' || lead.status === statusFilter,
+
+  // Her filtre satırının sayıları DİĞER aktif filtrelere göre hesaplanıyor.
+  const forStatusChips = searched.filter(matchesSource);
+  const forSourceChips = searched.filter(matchesStatus);
+  const filtered = searched.filter((l) => matchesStatus(l) && matchesSource(l));
+
+  const visible = [...filtered].sort((a, b) => {
+    if (sort === 'oldest') return a.createdAt - b.createdAt;
+    if (sort === 'name') return (a.fullName ?? '').localeCompare(b.fullName ?? '', 'tr');
+    return b.createdAt - a.createdAt;
+  });
+
+  const countFor = (id: string) => forStatusChips.filter((l) => l.status === id).length;
+
+  // Veride gerçekten bulunan kaynaklar, sayılarıyla.
+  const sourceCounts = new Map<string, number>();
+  for (const lead of forSourceChips) {
+    const key = String(lead.source);
+    sourceCounts.set(key, (sourceCounts.get(key) ?? 0) + 1);
+  }
+  const sourceKeys = Array.from(new Set(leads.map((l) => String(l.source)))).sort((a, b) =>
+    sourceLabel(a).localeCompare(sourceLabel(b), 'tr'),
   );
 
-  const countFor = (id: string) => searched.filter((l) => l.status === id).length;
+  // "Şimdi" ilk render'da bir kez sabitleniyor (render saflığı için state ile);
+  // yalnızca "son 7/30 gün" sayımlarını etkiler, sayfa yenilenince tazelenir.
+  const [now] = useState(() => Date.now());
+  const stats = {
+    total: leads.length,
+    week: leads.filter((l) => now - l.createdAt <= 7 * DAY_MS).length,
+    month: leads.filter((l) => now - l.createdAt <= 30 * DAY_MS).length,
+    won: leads.filter((l) => l.status === 'kazanildi').length,
+    lost: leads.filter((l) => l.status === 'kaybedildi').length,
+    pending: leads.filter((l) => l.status === 'yeni').length,
+  };
+  const closed = stats.won + stats.lost;
+  const conversion = closed === 0 ? '—' : `%${Math.round((stats.won / closed) * 100)}`;
+
+  function handleExport() {
+    if (visible.length === 0) return;
+    const header = [
+      'Tarih', 'Ad Soyad', 'İletişim', 'Hizmet', 'Kaynak', 'Durum', 'Not', 'Mevcut site', 'Form notu',
+    ];
+    const statusLabel = (id: string) => statuses.find((s) => s.id === id)?.label ?? id;
+    const lines = [
+      header.map(csvCell).join(';'),
+      ...visible.map((lead) =>
+        [
+          formatDate(lead.createdAt),
+          lead.fullName,
+          lead.contactInfo,
+          lead.projectType,
+          sourceLabel(String(lead.source)),
+          statusLabel(lead.status),
+          lead.note ?? '',
+          lead.website ?? '',
+          lead.notes ?? '',
+        ]
+          .map(csvCell)
+          .join(';'),
+      ),
+    ];
+
+    // BOM: Excel'in Türkçe karakterleri doğru okuması için gerekli.
+    const blob = new Blob(['﻿' + lines.join('\r\n')], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `kodara-leadler-${csvDateStamp(new Date())}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl min-w-0 px-4 py-8 sm:px-6 sm:py-12">
@@ -374,6 +492,18 @@ function LeadBoard({
             Silme işlemi KVKK silme taleplerini karşılamak içindir; kayıt kalıcı olarak gider.
           </p>
 
+          <section aria-label="Özet" className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <StatTile label="Toplam lead" value={String(stats.total)} />
+            <StatTile label="Bu hafta" value={String(stats.week)} hint="son 7 gün" />
+            <StatTile label="Bu ay" value={String(stats.month)} hint="son 30 gün" />
+            <StatTile
+              label="Dönüşüm"
+              value={conversion}
+              hint={`${stats.won} kazanıldı / ${stats.lost} kaybedildi`}
+            />
+            <StatTile label="Bekleyen" value={String(stats.pending)} hint="yeni" accent={stats.pending > 0} />
+          </section>
+
           <div className="mt-5 space-y-3">
             <div>
               <label htmlFor="crm-search" className="sr-only">
@@ -389,12 +519,12 @@ function LeadBoard({
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Durum filtresi">
               <FilterChip
                 active={statusFilter === 'all'}
                 onClick={() => setStatusFilter('all')}
                 label="Tümü"
-                count={searched.length}
+                count={forStatusChips.length}
                 tone="bg-white/5 text-slate-200 border-white/10"
               />
               {statuses.map((s) => (
@@ -407,6 +537,60 @@ function LeadBoard({
                   tone={toneOf(s.id)}
                 />
               ))}
+            </div>
+
+            {sourceKeys.length > 0 ? (
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className="text-xs uppercase tracking-wide text-slate-500">Kaynak</span>
+                <div className="flex min-w-0 flex-wrap gap-2" role="group" aria-label="Kaynak filtresi">
+                  <SourceChip
+                    active={sourceFilter === 'all'}
+                    onClick={() => setSourceFilter('all')}
+                    label="Tümü"
+                    count={forSourceChips.length}
+                  />
+                  {sourceKeys.map((key) => (
+                    <SourceChip
+                      key={key}
+                      active={sourceFilter === key}
+                      onClick={() => setSourceFilter(key)}
+                      label={sourceLabel(key)}
+                      count={sourceCounts.get(key) ?? 0}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <div className="min-w-0">
+                <label htmlFor="crm-sort" className="sr-only">
+                  Sıralama
+                </label>
+                <select
+                  id="crm-sort"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  className="min-h-9 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs text-slate-200 focus:border-brand-400 focus:outline-none"
+                >
+                  {SORT_OPTIONS.map((o) => (
+                    <option key={o.id} value={o.id} className="bg-surface text-slate-100">
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={visible.length === 0}
+                className="min-h-9 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-brand-400/40 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                CSV indir
+              </button>
+              <span className="tabular-nums text-xs text-slate-500">
+                {visible.length} kayıt listeleniyor
+              </span>
             </div>
           </div>
 
@@ -433,7 +617,7 @@ function LeadBoard({
                       <th scope="col" className="px-3 py-2.5 font-medium">Proje</th>
                       <th scope="col" className="px-3 py-2.5 font-medium">Kaynak</th>
                       <th scope="col" className="px-3 py-2.5 font-medium">Durum</th>
-                      <th scope="col" className="px-3 py-2.5 font-medium">Not</th>
+                      <th scope="col" className="px-3 py-2.5 font-medium">Notum</th>
                       <th scope="col" className="px-3 py-2.5 font-medium">
                         <span className="sr-only">İşlem</span>
                       </th>
@@ -495,6 +679,105 @@ function FilterChip({
     >
       {label} <span className="tabular-nums opacity-70">({count})</span>
     </button>
+  );
+}
+
+function SourceChip({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`min-h-9 rounded-lg border border-dashed px-3 py-1.5 text-xs font-medium transition-colors ${
+        active
+          ? 'border-brand-400/60 bg-brand-500/10 text-brand-100'
+          : 'border-white/15 text-slate-400 hover:border-brand-400/40 hover:text-slate-200'
+      }`}
+    >
+      {label} <span className="tabular-nums opacity-70">({count})</span>
+    </button>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`min-w-0 rounded-xl border px-3 py-2.5 ${
+        accent ? 'border-brand-400/40 bg-brand-500/10' : 'border-white/10 bg-white/[0.02]'
+      }`}
+    >
+      <p className="truncate text-xs text-slate-500">{label}</p>
+      <p
+        className={`tabular-nums text-lg font-semibold ${accent ? 'text-brand-100' : 'text-white'}`}
+      >
+        {value}
+      </p>
+      {hint ? <p className="truncate text-xs text-slate-500">{hint}</p> : null}
+    </div>
+  );
+}
+
+/** İletişim bilgisini panoya kopyalar. Güvensiz bağlamda sessizce hiçbir şey yapmaz. */
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  const text = (value ?? '').trim();
+  if (!text) return null;
+
+  async function copy() {
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      return;
+    }
+    setCopied(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 align-middle">
+      <button
+        type="button"
+        onClick={() => void copy()}
+        aria-label="İletişim bilgisini kopyala"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-slate-400 hover:border-brand-400/40 hover:text-brand-200"
+      >
+        {copied ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
+      </button>
+      <span aria-live="polite" className="text-xs text-emerald-300">
+        {copied ? 'kopyalandı' : ''}
+      </span>
+    </span>
   );
 }
 
@@ -798,11 +1081,25 @@ function LeadRow(props: RowProps) {
       </td>
       <td className="px-3 py-3 text-sm font-medium text-white">{lead.fullName}</td>
       <td className="max-w-[14rem] px-3 py-3 text-sm">
-        <ContactLink value={lead.contactInfo} />
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <ContactLink value={lead.contactInfo} />
+          <CopyButton value={lead.contactInfo} />
+        </div>
       </td>
-      <td className="max-w-[12rem] px-3 py-3 text-sm text-slate-300">{lead.projectType}</td>
+      <td className="max-w-[12rem] px-3 py-3 text-sm text-slate-300">
+        <span className="break-words">{lead.projectType}</span>
+        {lead.notes ? (
+          <p
+            title={lead.notes}
+            className="mt-1 line-clamp-2 break-words text-xs text-slate-500"
+          >
+            <span className="text-slate-600">Mesajı: </span>
+            {lead.notes}
+          </p>
+        ) : null}
+      </td>
       <td className="whitespace-nowrap px-3 py-3 text-xs text-slate-500">
-        {SOURCE_LABELS[lead.source] ?? lead.source}
+        {sourceLabel(String(lead.source))}
       </td>
       <td className="px-3 py-3">
         <StatusSelect id={lead.id} value={lead.status} onChange={a.changeStatus} />
@@ -839,7 +1136,10 @@ function LeadCard(props: RowProps) {
         <div className="flex min-w-0 gap-2">
           <dt className="w-20 shrink-0 text-xs text-slate-500">İletişim</dt>
           <dd className="min-w-0 flex-1 break-words">
-            <ContactLink value={lead.contactInfo} />
+            <span className="inline-flex min-w-0 flex-wrap items-center gap-1.5">
+              <ContactLink value={lead.contactInfo} />
+              <CopyButton value={lead.contactInfo} />
+            </span>
           </dd>
         </div>
         <div className="flex min-w-0 gap-2">
@@ -849,9 +1149,17 @@ function LeadCard(props: RowProps) {
         <div className="flex min-w-0 gap-2">
           <dt className="w-20 shrink-0 text-xs text-slate-500">Kaynak</dt>
           <dd className="min-w-0 flex-1 break-words text-slate-400">
-            {SOURCE_LABELS[lead.source] ?? lead.source}
+            {sourceLabel(String(lead.source))}
           </dd>
         </div>
+        {lead.notes ? (
+          <div className="flex min-w-0 gap-2">
+            <dt className="w-20 shrink-0 text-xs text-slate-500">Mesajı</dt>
+            <dd className="min-w-0 flex-1 whitespace-pre-wrap break-words text-xs text-slate-400">
+              {lead.notes}
+            </dd>
+          </div>
+        ) : null}
       </dl>
 
       <div className="mt-3">
@@ -859,6 +1167,7 @@ function LeadCard(props: RowProps) {
       </div>
 
       <div className="mt-3">
+        <p className="mb-1 text-xs text-slate-500">Notum</p>
         <NoteField id={lead.id} note={a.note} setNote={a.setNote} onBlur={a.saveNote} rows={3} />
         <SavedHint saved={a.saved} error={a.error} />
       </div>

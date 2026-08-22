@@ -5,6 +5,7 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Bot, Send, X, Sparkles, Square, RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 import { SITE } from '@/lib/site';
+import { TurnstileField, isTurnstileEnabled } from '@/components/TurnstileField';
 
 const QUICK_QUESTIONS = [
   'Web sitesi paketleri ve fiyatlandırma nasıl?',
@@ -67,6 +68,11 @@ type MessagePart = {
 function FallbackLeadForm() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', company: '' });
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  // Hata metni tek bir cümle değil artık: doğrulama uyarısı da aynı satırda gösteriliyor.
+  const [errorText, setErrorText] = useState(
+    'Gönderilemedi. Lütfen tekrar deneyin ya da doğrudan arayın.',
+  );
 
   if (state === 'sent') {
     return (
@@ -85,17 +91,29 @@ function FallbackLeadForm() {
       onSubmit={async (event) => {
         event.preventDefault();
         if (state === 'sending') return;
+        if (isTurnstileEnabled() && !turnstileToken) {
+          setErrorText('Lütfen güvenlik doğrulamasını tamamlayın.');
+          setState('error');
+          return;
+        }
         setState('sending');
         try {
           const res = await fetch('/api/lead', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...form, source: 'form', service: 'Sohbet balonu (asistan kapalı)' }),
+            body: JSON.stringify({
+              ...form,
+              source: 'form',
+              service: 'Sohbet balonu (asistan kapalı)',
+              turnstileToken,
+            }),
           });
           if (!res.ok) throw new Error();
           setState('sent');
         } catch {
+          setErrorText('Gönderilemedi. Lütfen tekrar deneyin ya da doğrudan arayın.');
           setState('error');
+          setTurnstileToken('');
         }
       }}
     >
@@ -150,9 +168,11 @@ function FallbackLeadForm() {
 
       {state === 'error' && (
         <p role="alert" className="text-[11px] text-red-300">
-          Gönderilemedi. Lütfen tekrar deneyin ya da doğrudan arayın.
+          {errorText}
         </p>
       )}
+
+      <TurnstileField onToken={setTurnstileToken} className="mt-3 overflow-x-auto" />
 
       <button
         type="submit"
