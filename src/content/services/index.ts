@@ -5,13 +5,42 @@ import reklamYonetimi from './reklam-yonetimi';
 import kvkkDanismanlik from './kvkk-danismanlik';
 import markaPatentTescili from './marka-patent-tescili';
 
-/** Menü, ana sayfa ızgarası ve sitemap bu sırayı kullanır. */
-export const SERVICES: ServiceContent[] = [
+/** Yazılmış tüm hizmet içerikleri — pasif olanlar dâhil. */
+const ALL_SERVICES: ServiceContent[] = [
   webTasarim, seo, reklamYonetimi, kvkkDanismanlik, markaPatentTescili,
 ];
 
+/**
+ * SATIŞTA OLMAYAN HİZMETLER — tek anahtar.
+ *
+ * Buradaki slug'lar menüden, altbilgiden, ana sayfa ızgarasından, ilgili
+ * hizmetler blokundan ve site haritasından çıkar; sayfaları ayakta kalır ama
+ * arama motorlarına `noindex` verilir (bkz. ilgili page.tsx dosyaları).
+ *
+ * NEDEN SİLMİYORUZ: adresi bilen ya da eski bir bağlantıdan gelen ziyaretçi
+ * 404 görmüyor, mevcut arama sıralamaları ve geri bağlantılar yanmıyor.
+ * Hizmeti geri açmak = slug'ı bu listeden çıkarmak + o sayfanın
+ * `robots: { index: false }` satırını silmek + PUBLIC_ROUTES'a geri eklemek.
+ *
+ * Şu an konumlandırma bilinçli olarak daraltıldı: yalnızca güvenlik ve uyum.
+ */
+export const INACTIVE_SLUGS: ReadonlySet<string> = new Set([
+  'web-tasarim',
+  'seo',
+  'reklam-yonetimi',
+]);
+
+/** Menü, ana sayfa ızgarası ve sitemap bu sırayı kullanır — yalnızca aktifler. */
+export const SERVICES: ServiceContent[] = ALL_SERVICES.filter(
+  (s) => !INACTIVE_SLUGS.has(s.slug),
+);
+
+/**
+ * Slug → içerik. Pasif hizmetler de burada: sayfaları hâlâ render ediliyor,
+ * yalnızca hiçbir yerden bağlantı verilmiyor.
+ */
 export const SERVICE_BY_SLUG: Record<string, ServiceContent> = Object.fromEntries(
-  SERVICES.map((s) => [s.slug, s]),
+  ALL_SERVICES.map((s) => [s.slug, s]),
 );
 
 export const SERVICE_SLUGS = SERVICES.map((s) => s.slug);
@@ -83,24 +112,42 @@ const SECURITY_CARDS: ServiceCard[] = [
   },
 ];
 
+/**
+ * Hangi hizmet hangi grupta. Eskiden sıra numarasına bakılıyordu (ilk üçü
+ * büyüme); bir hizmet pasife alınınca bu sessizce yanlış gruplama üretiyordu.
+ * Artık slug'a bakıyor — liste değişse de doğru kalıyor.
+ */
+const GROUP_BY_SLUG: Record<string, ServiceGroup> = {
+  'web-tasarim': 'buyume',
+  seo: 'buyume',
+  'reklam-yonetimi': 'buyume',
+  'kvkk-danismanlik': 'guvenlik',
+  'marka-patent-tescili': 'guvenlik',
+};
+
 export const ALL_SERVICE_CARDS: ServiceCard[] = [
-  ...SERVICES.map((s, i) => ({
+  ...SERVICES.map((s) => ({
     href: `/${s.slug}`,
-    // İlk üç hizmet büyüme tarafı, kalan ikisi (KVKK, marka-patent) uyum tarafı.
-    group: (i < 3 ? 'buyume' : 'guvenlik') as ServiceGroup,
+    group: GROUP_BY_SLUG[s.slug] ?? 'guvenlik',
     label: s.navLabel,
     title: s.card.title,
     desc: s.card.desc,
     icon: s.icon,
-    // Web tasarım ajansın çekirdek işi; ana sayfada öne çıkıyor.
-    featured: i === 0,
   })),
   ...SECURITY_CARDS,
 ];
 
 export type { ServiceContent, ServiceIcon } from './types';
 
-/** Verilen gruptaki hizmet kartları — ana sayfa iki blok hâlinde gösteriyor. */
+/** Verilen gruptaki hizmet kartları — ana sayfa grup grup gösteriyor. */
 export function cardsByGroup(group: ServiceGroup): ServiceCard[] {
   return ALL_SERVICE_CARDS.filter((c) => c.group === group);
 }
+
+/**
+ * İçinde en az bir aktif hizmet kalan gruplar. Bütün büyüme hizmetleri pasife
+ * alındığında ana sayfada "Büyüme — 0 hizmet" diye boş bir başlık kalmasın.
+ */
+export const ACTIVE_SERVICE_GROUPS = SERVICE_GROUPS.filter(
+  (g) => cardsByGroup(g.id).length > 0,
+);

@@ -20,11 +20,13 @@ const SIZE_CLASSES: Record<NonNullable<LogoProps['size']>, string> = {
  */
 export function Logo({ size = 'sm', className = '' }: LogoProps) {
   return (
+    // Renk temadan geliyor: koyu zeminde beyaz, açık zeminde lacivert.
+    // Sabit `text-white` olduğu sürece açık temalı sayfada logo görünmüyordu.
     <span
-      className={`inline-flex select-none items-baseline font-extrabold leading-none tracking-tight text-white ${SIZE_CLASSES[size]} ${className}`}
+      className={`inline-flex select-none items-baseline font-extrabold leading-none tracking-tight text-[var(--ink)] ${SIZE_CLASSES[size]} ${className}`}
     >
       {SITE.wordmark}
-      <span className="text-brand-400">.</span>
+      <span className="text-[var(--accent)]">.</span>
     </span>
   );
 }

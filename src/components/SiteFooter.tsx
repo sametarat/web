@@ -1,16 +1,18 @@
 import React from 'react';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
-import { SERVICES } from '@/content/services';
+import { ALL_SERVICE_CARDS } from '@/content/services';
 
-/** Beş hizmet sayfası — altbilgi, bu sayfaların site geneline açılan yolu. */
-const SERVICE_LINKS = SERVICES.map((service) => ({
-  href: `/${service.slug}`,
-  label: service.navLabel,
+/** Aktif hizmet sayfaları — altbilgi, bu sayfaların site geneline açılan yolu.
+    ALL_SERVICE_CARDS kullanılıyor: sızma testi, güvenlik analizi ve ISO 27001
+    içerik dosyasından değil elle tanımlı olduğu için SERVICES'te yoklar ve
+    altbilgide görünmüyorlardı. */
+const SERVICE_LINKS = ALL_SERVICE_CARDS.map((card) => ({
+  href: card.href,
+  label: card.label,
 }));
 
 const LINKS = [
-  { href: '/#demolar', label: 'Demolar' },
   { href: '/ilkeler', label: 'İlkelerimiz' },
   { href: '/sss', label: 'SSS' },
   { href: '/iletisim', label: 'İletişim' },

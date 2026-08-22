@@ -47,3 +47,5 @@ next-env.d.ts
 
 # gecici: silinmeyi bekleyen dosyalar (Tailwind kaynak taramasindan da haric tutulur)
 /_to_delete/
+src/.claude/
+src/.windsurf/

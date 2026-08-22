@@ -57,18 +57,19 @@ export function SectionHeading({
   return (
     <Reveal>
       <div className={className}>
-        {/* Antet satırı: sıra numarası, bölüm adı ve sağa doğru uzayan kot çizgisi */}
+        {/* Antet satırı: sıra numarası (işaret rengi), bölüm adı ve sağa
+            doğru uzayan ölçü şeridi — markanın taşıyıcı motifi. */}
         <div className="flex items-center gap-3 sm:gap-4">
           <span
             aria-hidden="true"
-            className="font-mono text-[11px] font-semibold tabular-nums text-brand-400"
+            className="font-mono text-[11px] font-semibold tabular-nums text-accent-400"
           >
             {index}
           </span>
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500 sm:text-[11px]">
             {eyebrow}
           </span>
-          <span aria-hidden="true" className="dim-rule ml-1 min-w-6 flex-1" />
+          <span aria-hidden="true" className="rule-tape ml-1 min-w-6 flex-1 text-brand-400" />
         </div>
 
         {layout === 'split' ? (

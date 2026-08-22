@@ -14,30 +14,35 @@ import { ChevronDown } from 'lucide-react';
 
 const FAQS = [
   {
-    q: 'Bir web sitesi ne kadar sürede teslim ediliyor?',
-    a: 'Kurumsal tanıtım siteleri ortalama 1–3 hafta, e-ticaret ve özel yazılım projeleri 3–6 hafta sürüyor. Süre kapsam dokümanında yazılı olarak sabitleniyor; içerik ve görselleri zamanında ilettiğiniz sürece bu tarih kaymıyor.',
+    q: 'Hangi hizmetleri veriyorsunuz?',
+    a: 'Sızma testi (pentest), altyapı güvenlik analizi, ISO 27001 hazırlık, KVKK uyum danışmanlığı ve marka & patent tescili. Hepsi aynı ekipte yürüdüğü için aynı bilgiyi iki kez toplamıyoruz.',
   },
   {
     q: 'Fiyat neye göre belirleniyor?',
-    a: 'Hazır paket satmıyoruz çünkü her işin ihtiyacı farklı. Keşif görüşmesinden sonra sayfa sayısı, entegrasyonlar ve içerik üretimi kalemlerini ayrı ayrı fiyatlandırıp tek bir sabit rakam veriyoruz. Teklif kabul edilmezse hiçbir ücret çıkmaz.',
+    a: 'Hazır paket satmıyoruz. Rakamı belirleyen şey işin kapsamı: sızma testinde seçilen test alanları, kullanıcı rolü ve sistem sayısı; uyum tarafında departman sayısı, kullanılan sistemler ve aktarım yapılan tedarikçi sayısı. Kapsam görüşmesinden sonra fiyat sabitlenir ve iş bitene kadar değişmez. Teklif kabul edilmezse hiçbir ücret çıkmaz.',
   },
   {
-    q: 'WordPress yerine neden bunu tercih edeyim?',
-    a: 'WordPress kötü bir araç değil ama eklenti yığınıyla büyüdükçe yavaşlıyor ve güvenlik yükü artıyor. Biz sayfaları önceden derleyip dünyaya dağıtılmış sunuculardan sunuyoruz; sonuç, veritabanı sorgusu beklemeyen ve saldırı yüzeyi çok daha dar bir site oluyor. Şu an okuduğunuz bu site de aynı mimariyle kurulu.',
+    q: 'Bir çalışma ne kadar sürer?',
+    a: 'Tek alanlı ve kapsamı netleşmiş bir sızma testi tipik olarak 5–10 iş günü test, ardından 2–3 iş günü raporlama demektir. Altyapı güvenlik analizinde saha incelemesi tipik bir işletmede 1–2 iş günü sürer. ISO 27001 hazırlığı ise kurum büyüklüğüne göre birkaç aylık bir dönemdir. Takvim her durumda kapsam görüşmesinde tarih verilerek sabitlenir.',
   },
   {
-    q: 'Siteyi kendim güncelleyebilecek miyim?',
-    a: 'Evet. İçeriğini sık değiştireceğiniz bölümler için panel kuruyoruz ve teslimde nasıl kullanılacağını kayıt altına alınmış bir görüşmede gösteriyoruz. Kod tarafına dokunmanız gerekmiyor.',
+    q: 'Test sırasında sistemimiz çöker mi?',
+    a: 'Amaç açık bulmak, servisi durdurmak değil: yük ve DDoS testleri kapsam dışıdır, yıkıcı olabilecek işlemler kapsam dokümanında baştan yasaklanır. Test, sizin belirlediğiniz pencerede yürütülebilir. Yine de test boyunca açık bir acil durum hattı bulunur; tek mesajla çalışma durur.',
   },
   {
-    q: 'Projeyi yarıda bırakırsanız ne olur?',
-    a: 'Kod deposuna baştan itibaren erişiminiz var, çalışma bizim sunucumuzda kilitli durmuyor. Herhangi bir aşamada ayrılmak isterseniz o ana kadar üretilen her şey sizde kalır ve başka bir ekip kaldığı yerden devam edebilir.',
+    q: 'Rapor kimde kalıyor?',
+    a: 'Rapor size aittir. Denetimlerde, sigorta süreçlerinde veya tedarikçi görüşmelerinde dilediğiniz gibi kullanabilirsiniz. Bulgular üçüncü taraflarla paylaşılmaz.',
   },
   {
-    q: 'SEO ve reklam yönetimini de siz mi yapıyorsunuz?',
-    a: 'Teknik SEO altyapısı (site hızı, yapısal veri, sitemap, mobil uyumluluk) her projeye dahil. İçerik stratejisi ile Meta ve Google reklam yönetimi ise ayrı hizmetler; isterseniz site teslimiyle birlikte, isterseniz sonrasında başlatıyoruz.',
+    q: 'ISO 27001 belgesini siz mi veriyorsunuz?',
+    a: 'Hayır. Belgeyi TÜRKAK akredite bir belgelendirme kuruluşu verir ve belgelendirme kararı ona aittir. Danışmanlık verdiğim kurumun belgelendirme denetimini de yapmam. Benim işim, o denetime eksiği kapatılmış olarak girmenizi sağlamak.',
+  },
+  {
+    q: 'KVKK tarafında ceza almayacağımızın garantisini veriyor musunuz?',
+    a: 'Hayır, böyle bir garanti kimse veremez. Denetim ve yaptırım yetkisi Kuruldadır ve sonucu kurumun fiilî uygulamasına bağlıdır. Bizim taahhüdümüz, yükümlülükleri eksiksiz çıkarmak, belgeleri gerçeği yansıtacak şekilde hazırlamak ve eksikleri önceliklendirilmiş bir listeyle önünüze koymaktır.',
   },
 ];
+
 
 export function FaqSection() {
   return (
@@ -61,9 +66,9 @@ export function FaqSection() {
         <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-brand-400 sm:text-xs">
           // Sık Sorulanlar
         </span>
-        <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
           Aklınızdaki Sorular
-        </h2>
+        </h1>
       </div>
 
       <div className="mx-auto max-w-3xl space-y-2.5">

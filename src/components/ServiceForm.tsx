@@ -86,8 +86,8 @@ export function ServiceForm({
         className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-8 text-center"
       >
         <CheckCircle2 className="h-11 w-11 text-emerald-400" aria-hidden="true" />
-        <h2 className="text-lg font-bold text-white">Talebiniz alındı</h2>
-        <p className="text-sm leading-relaxed text-slate-300">
+        <h2 className="text-lg font-bold text-[var(--ink)]">Talebiniz alındı</h2>
+        <p className="text-sm leading-relaxed text-[var(--ink-2)]">
           {service} talebiniz bize ulaştı. 1 iş günü içinde dönüş yapıp ihtiyacınızı
           birlikte netleştirelim.
         </p>
@@ -96,17 +96,17 @@ export function ServiceForm({
   }
 
   const inputClass =
-    'w-full min-w-0 rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3.5 text-sm text-white placeholder:text-slate-500 transition-colors focus:border-brand-400 focus:outline-none';
-  const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500';
+    'w-full min-w-0 rounded-xl border border-[var(--line)] bg-[var(--field)] px-4 py-3.5 text-sm text-[var(--ink)] placeholder:text-[var(--ink-4)] transition-colors focus:border-[var(--accent)] focus:outline-none';
+  const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[var(--ink-4)]';
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur-sm sm:p-7"
+      className="space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-6 shadow-2xl backdrop-blur-sm sm:p-7"
     >
       <div className="mb-5">
-        <h2 className="text-lg font-extrabold text-white sm:text-xl">{heading}</h2>
-        <p className="mt-1 text-xs leading-relaxed text-slate-400">{description}</p>
+        <h2 className="text-lg font-extrabold text-[var(--ink)] sm:text-xl">{heading}</h2>
+        <p className="mt-1 text-xs leading-relaxed text-[var(--ink-3)]">{description}</p>
       </div>
 
       <div className="absolute left-[-9999px]" aria-hidden="true">
@@ -233,11 +233,11 @@ export function ServiceForm({
         )}
       </button>
 
-      <p className="text-center text-[11px] leading-relaxed text-slate-500">
+      <p className="text-center text-[11px] leading-relaxed text-[var(--ink-4)]">
         Formu göndererek{' '}
         <Link
           href="/kvkk"
-          className="text-slate-400 underline underline-offset-2 hover:text-brand-400"
+          className="text-[var(--ink-3)] underline underline-offset-2 hover:text-[var(--accent)]"
         >
           KVKK aydınlatma metnini
         </Link>{' '}

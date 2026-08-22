@@ -1,45 +1,48 @@
 import React from 'react';
 import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
-import { Search, PenTool, Code2, Rocket } from 'lucide-react';
+import { Search, FileSignature, Bug, RefreshCw } from 'lucide-react';
 
 /**
  * Süreç bölümü. Amaç: ziyaretçinin "para verdikten sonra ne olacak?" sorusuna
  * baştan net cevap vermek. Her adımda müşterinin ELİNE NE GEÇTİĞİ yazılı —
- * belirsizlik, ajans seçiminde en büyük tereddüt sebebi.
+ * belirsizlik, hizmet seçiminde en büyük tereddüt sebebi.
+ *
+ * Süreler /pentest sayfasındaki adım tablosuyla aynı; biri değişirse diğerini
+ * de güncelle.
  */
 
 const STEPS = [
   {
     icon: Search,
     step: '01',
-    title: 'Keşif & Analiz',
-    duration: '2–4 gün',
-    desc: 'İşinizi, hedef kitlenizi ve rakiplerinizi konuşuyoruz. Mevcut siteniz varsa teknik denetimden geçiriyoruz.',
-    deliverable: 'Kapsam dokümanı ve sabit fiyat teklifi',
+    title: 'Kapsam görüşmesi',
+    duration: '1 iş günü içinde dönüş',
+    desc: 'Neyin test edileceğini, hangi sistemlerin dâhil olduğunu ve takvimi konuşuyoruz. Görüşme bağlayıcı değil.',
+    deliverable: 'Yazılı kapsam dokümanı ve sabit fiyat',
   },
   {
-    icon: PenTool,
+    icon: FileSignature,
     step: '02',
-    title: 'Tasarım & Prototip',
-    duration: '3–7 gün',
-    desc: 'Hazır tema kullanmıyoruz. Markanıza özel arayüzü tıklanabilir prototip olarak görüyorsunuz.',
-    deliverable: 'Onayınıza sunulan interaktif prototip',
+    title: 'Yetkilendirme ve gizlilik',
+    duration: '2–3 iş günü',
+    desc: 'İmzalı yetki belgesi, gizlilik sözleşmesi, hedef listesi, yasaklı işlemler ve test penceresi yazılı olarak netleşir.',
+    deliverable: 'İmzalı yetki belgesi ve gizlilik sözleşmesi',
   },
   {
-    icon: Code2,
+    icon: Bug,
     step: '03',
-    title: 'Geliştirme',
-    duration: '1–4 hafta',
-    desc: 'Kod yazılırken izliyorsunuz. Her hafta çalışan bir önizleme linki gönderiyoruz, sürpriz olmuyor.',
-    deliverable: 'Haftalık canlı önizleme ve ilerleme raporu',
+    title: 'Test ve raporlama',
+    duration: '5–10 iş günü + 2–3 gün rapor',
+    desc: 'Çalışma elle yürütülüyor. Yönetim özeti karar verecek kişi için, teknik bölüm düzeltmeyi yapacak geliştirici için ayrı yazılıyor.',
+    deliverable: 'CVSS puanlı bulgu raporu ve düzeltme önerileri',
   },
   {
-    icon: Rocket,
+    icon: RefreshCw,
     step: '04',
-    title: 'Yayın & Devir',
-    duration: '1–2 gün',
-    desc: 'Alan adı, SSL, analytics ve arama motoru kurulumlarını biz yapıyoruz. Kod deposu size devrediliyor.',
-    deliverable: 'Yayındaki site, kaynak kod ve kullanım eğitimi',
+    title: 'Düzeltme desteği ve doğrulama',
+    duration: '2 hafta soru-cevap + 1–2 iş günü',
+    desc: 'Geliştirici ekibinizle bulgu bazında soru-cevap, ardından kapatıldığı bildirilen bulguların yeniden denenmesi.',
+    deliverable: 'Rapora işlenen doğrulama eki — ayrıca ücretlendirilmez',
   },
 ];
 

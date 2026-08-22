@@ -5,19 +5,19 @@ import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 import { TopAdBanner } from '@/components/TopAdBanner';
 import { MobileNav } from '@/components/MobileNav';
-import { SERVICES } from '@/content/services';
+import { ALL_SERVICE_CARDS } from '@/content/services';
 
 type NavLink = { href: string; label: string };
 
 /**
  * Hizmet sayfaları. Masaüstü barında tek bir "Hizmetler" linki duruyor
- * (ana sayfadaki hizmet ızgarasına gidiyor); telefonda ise beş hizmetin
+ * (ana sayfadaki hizmet ızgarasına gidiyor); telefonda ise her hizmetin
  * kendi sayfası menüye ekleniyor — orada yer var ve bu, hizmet sayfalarının
  * tek gezinme yolu.
  */
-const SERVICE_LINKS: NavLink[] = SERVICES.map((service) => ({
-  href: `/${service.slug}`,
-  label: service.navLabel,
+const SERVICE_LINKS: NavLink[] = ALL_SERVICE_CARDS.map((card) => ({
+  href: card.href,
+  label: card.label,
 }));
 
 /**
@@ -27,12 +27,15 @@ const SERVICE_LINKS: NavLink[] = SERVICES.map((service) => ({
 export function SiteHeader({
   links = [
     { href: '#hizmetler', label: 'Hizmetler' },
-    { href: '#demolar', label: 'Canlı Demolar' },
     { href: '/ilkeler', label: 'İlkelerimiz' },
     { href: '/sss', label: 'SSS' },
   ],
   ctaHref = '#teklif-al',
-  showBanner = true,
+  // Kampanya bandı KAPALI. İçindeki metin ("İlk 10 müşterimize %20 SEO
+  // hediye") hem artık sunulmayan bir hizmeti duyuruyordu hem de karşılığı
+  // olmayan bir vaatti. Gerçek bir kampanyan olduğunda TopAdBanner.tsx'teki
+  // metni güncelleyip burayı `true` yapman yeterli.
+  showBanner = false,
 }: {
   links?: NavLink[];
   ctaHref?: string;
@@ -51,7 +54,7 @@ export function SiteHeader({
       {/* Genişlik ana sayfadaki kabuk ile aynı (max-w-[1320px] + aynı padding);
           aksi hâlde üst bar içerikten dar kalıp hizasız görünüyordu. */}
       <header className="mx-auto w-full max-w-[1320px] px-5 py-2 sm:px-8 sm:py-3 lg:px-12">
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between shadow-lg">
+        <div className="bg-[var(--panel)]/90 border border-[var(--line)] rounded-xl px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between shadow-lg">
           <Link href="/" aria-label="Ana sayfa" className="flex items-center gap-2">
             <Logo size="sm" />
           </Link>

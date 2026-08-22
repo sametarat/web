@@ -7,14 +7,14 @@ import { ArrowRight } from 'lucide-react';
 /**
  * Hero.
  *
- * Ajans tek bir şey satmıyor; kurumsal site, e-ticaret ve büyüme hizmetleri
- * farklı müşteri profillerine hitap ediyor. Tek bir başlıkla üçünü birden
- * anlatmaya çalışmak yerine sırayla gösteriyoruz.
+ * Konumlandırma güvenlik ve uyum üzerine daraltıldı; iki taraf farklı müşteri
+ * profillerine hitap ettiği için tek bir başlıkla ikisini birden anlatmak
+ * yerine sırayla gösteriyoruz.
  *
  * Düzen bilinçli olarak asimetrik: başlık soldaki geniş sütunu tek başına
  * dolduruyor, sağdaki dar sütun hem slayt dizinini hem de ölçüm değerlerini
  * taşıyor. Böylece slayt kontrolleri "nokta" olmaktan çıkıp içerik oluyor —
- * ziyaretçi üç hizmeti aynı anda görebiliyor.
+ * ziyaretçi iki hizmet başlığını aynı anda görebiliyor.
  *
  * Erişilebilirlik: otomatik geçiş fareyle üzerine gelince, odaklanınca ve
  * `prefers-reduced-motion` açıkken durur. Slaytlar arasında ok tuşlarıyla
@@ -33,56 +33,56 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
-    label: 'Web & Yazılım',
-    eyebrow: 'Özel Web Yazılımları & Dijital Çözümler',
-    title: (
-      <>
-        İşletmeniz için hızlı, güvenli ve{' '}
-        <span className="text-brand-300">yüksek dönüşümlü</span> web sistemleri
-      </>
-    ),
-    desc: 'Yavaş açılan ve müşteri kaybettiren hazır temaları unutun. İşletmenize özel mimaride geliştirilmiş, milisaniyelik hızlarda çalışan canlı platformlar inşa ediyoruz.',
-    primary: { href: '#demolar', label: 'Canlı demoları gör' },
-    secondary: { href: '/web-tasarim', label: 'Web tasarım hizmeti' },
-  },
-  {
-    label: 'SEO & Reklam',
-    eyebrow: 'Teknik SEO & Reklam Yönetimi',
-    title: (
-      <>
-        Siteniz var ama{' '}
-        <span className="text-brand-300">kimse bulamıyorsa</span>
-      </>
-    ),
-    desc: 'Teknik SEO altyapısı, sayfa hızı ve dönüşüm optimizasyonu ile organik trafiği büyütüyor; Meta ve Google reklamlarını ölçülebilir hedeflerle yönetiyoruz.',
-    primary: { href: '/seo', label: 'SEO hizmetini incele' },
-    secondary: { href: '/reklam-yonetimi', label: 'Reklam yönetimi' },
-  },
-  {
-    label: 'Güvenlik',
-    eyebrow: 'Sızma Testi & Altyapı Güvenlik Analizi',
+    label: 'Sızma Testi',
+    eyebrow: 'Web · API · İç Ağ · Dış Ağ · Sosyal Mühendislik',
     title: (
       <>
         Açığı{' '}
-        <span className="text-brand-300">saldırgandan önce</span> biz bulalım
+        <span className="marked text-white">saldırgandan önce</span> biz bulalım
       </>
     ),
-    desc: 'Web, API, iç ağ ve dış ağ üzerinde elle yürütülen sızma testi. Her bulgu adım adım kanıtlanıyor, düzeltme önerisiyle teslim ediliyor ve düzeltmelerden sonra ücretsiz yeniden test ediliyor.',
+    desc: 'Elle yürütülen sızma testi. Her bulgu adım adım kanıtlanıyor, düzeltme önerisiyle teslim ediliyor ve düzeltmelerden sonra ücretsiz yeniden test ediliyor.',
     primary: { href: '/pentest', label: 'Sızma testi' },
     secondary: { href: '/guvenlik-analizi', label: 'Güvenlik analizi' },
   },
   {
-    label: 'Uyum & Tescil',
-    eyebrow: 'KVKK · ISO 27001 · Marka ve Patent',
+    label: 'Güvenlik Analizi',
+    eyebrow: 'Sabit Bedelli Ön Denetim',
     title: (
       <>
-        Denetime ve{' '}
-        <span className="text-brand-300">ihaleye hazır</span> bir kurum olun
+        Yatırımdan önce{' '}
+        <span className="marked text-white">riski ölçelim</span>
       </>
     ),
-    desc: 'KVKK uyum süreci, ISO 27001 belgelendirmeye hazırlık ve marka-patent tescili. Denetçinin ne aradığını bilerek hazırlanıyor, evrakı sizin ekibinizin sahiplenmesini sağlıyoruz.',
+    desc: 'Donanım ya da yazılıma bütçe ayırmadan önce altyapıyı ön denetimden geçiriyoruz: sızma kontrolü, ağ izolasyonu ve yedekleme incelemesi. Sonuç, yönetim seviyesinde okunabilir bir risk raporu.',
+    primary: { href: '/guvenlik-analizi', label: 'Güvenlik analizi' },
+    secondary: { href: '/pentest', label: 'Sızma testi' },
+  },
+  {
+    label: 'Uyum',
+    eyebrow: 'ISO 27001 · KVKK',
+    title: (
+      <>
+        Denetime{' '}
+        <span className="marked text-white">eksiksiz girin</span>
+      </>
+    ),
+    desc: 'ISO 27001 belgelendirmeye hazırlık ve KVKK uyum süreci. Denetçinin ne aradığını bilerek hazırlanıyor, evrakı sizin ekibinizin sahiplenmesini sağlıyoruz. Belgeyi akredite kuruluş verir; biz o denetime hazır girmenizi sağlarız.',
     primary: { href: '/iso-27001', label: 'ISO 27001 hazırlık' },
     secondary: { href: '/kvkk-danismanlik', label: 'KVKK danışmanlığı' },
+  },
+  {
+    label: 'Tescil',
+    eyebrow: 'Marka ve Patent',
+    title: (
+      <>
+        Markanızı{' '}
+        <span className="marked text-white">kâğıt üstünde</span> sahiplenin
+      </>
+    ),
+    desc: 'TÜRKPATENT nezdinde marka ve patent tescili: benzerlik araştırması, sınıf seçimi, başvuru ve süreç takibi. İhalede ve yatırımcı görüşmesinde sorulan ilk belgelerden biri.',
+    primary: { href: '/marka-patent-tescili', label: 'Marka & patent tescili' },
+    secondary: { href: '/is-ortakligi', label: 'İş ortaklığı' },
   },
 ];
 
@@ -93,10 +93,11 @@ const SLIDES: Slide[] = [
  * "%100 memnuniyet" gibi ifadeler koyma — ziyaretçi kontrol edemediği rakamı
  * ciddiye almıyor, kontrol edebildiği yanlış rakam ise güveni tamamen bitiriyor.
  */
-const MEASUREMENTS = [
-  { label: 'Hizmet alanı', value: '8 başlık' },
-  { label: 'Canlı demo', value: '6 sektör' },
-  { label: 'Sertifika', value: 'OSWE · ISO 27001' },
+const MEASUREMENTS: { label: string; value: string; highlight?: boolean }[] = [
+  { label: 'Hizmet alanı', value: '5 başlık' },
+  { label: 'Doğrulama testi', value: 'Ücretsiz' },
+  // Tek işaretli satır: sayfadaki en güçlü güven kanıtı bu.
+  { label: 'Sertifika', value: 'OSWE · TSE · ISO 27001', highlight: true },
 ];
 
 const INTERVAL = 7000;
@@ -150,7 +151,7 @@ export function HeroSlider() {
         <div className="aurora-blob aurora-blob-slow absolute right-0 top-20 h-80 w-80 rounded-full bg-brand-800/25 blur-[140px]" />
       </div>
 
-      <div className="mx-auto w-full max-w-[1320px] px-5 pt-10 pb-12 sm:px-8 lg:px-12 lg:pt-20 lg:pb-20">
+      <div className="mx-auto w-full max-w-[1320px] px-5 pt-10 pb-12 sm:px-8 lg:px-12 lg:pt-16 lg:pb-14">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-x-12">
           {/* Sol: tezin kendisi */}
           <div
@@ -163,7 +164,7 @@ export function HeroSlider() {
               <span className="whitespace-nowrap font-mono text-[11px] font-semibold tabular-nums text-brand-400">
                 {String(index + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
               </span>
-              <span className="dim-rule hidden w-10 shrink-0 sm:block" aria-hidden="true" />
+              <span className="rule-tape hidden w-14 shrink-0 text-brand-400 sm:block" aria-hidden="true" />
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-slate-500 sm:text-[11px]">
                 {slide.eyebrow}
               </span>
@@ -216,7 +217,7 @@ export function HeroSlider() {
                       <span className="flex items-baseline gap-3">
                         <span
                           className={`font-mono text-[11px] tabular-nums transition-colors ${
-                            isActive ? 'text-brand-400' : 'text-slate-600'
+                            isActive ? 'text-accent-400' : 'text-slate-600'
                           }`}
                         >
                           {String(i + 1).padStart(2, '0')}
@@ -258,8 +259,12 @@ export function HeroSlider() {
                   <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
                     {m.label}
                   </dt>
-                  <span aria-hidden="true" className="h-px flex-1 bg-slate-800/70" />
-                  <dd className="font-mono text-sm font-semibold tabular-nums text-emerald-400">
+                  <span aria-hidden="true" className="rule-tape min-w-6 flex-1 text-brand-400" />
+                  <dd
+                    className={`font-mono text-sm font-semibold tabular-nums ${
+                      m.highlight ? 'text-accent-400' : 'text-white'
+                    }`}
+                  >
                     {m.value}
                   </dd>
                 </div>

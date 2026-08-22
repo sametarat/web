@@ -1,45 +1,48 @@
 import React from 'react';
 import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
-import { KeyRound, Gauge, Receipt, Eye, LifeBuoy, Lock } from 'lucide-react';
+import { FileSignature, Receipt, RefreshCw, LifeBuoy, Lock, Scale } from 'lucide-react';
 
 /**
  * Çalışma ilkeleri — somut taahhütler.
  *
  * DİKKAT: Buradaki maddeler müşteriye verilen sözlerdir. Tutamayacağın bir
- * maddeyi silmen ya da yumuşatman gerekir; "30 gün destek" gibi süreleri de
- * kendi çalışma şekline göre güncelle.
+ * maddeyi silmen ya da yumuşatman gerekir.
+ *
+ * Maddeler uydurulmadı; /pentest, /guvenlik-analizi ve /iso-27001
+ * sayfalarında zaten verilen taahhütlerin özeti. Oralarda bir söz
+ * değişirse burayı da güncelle, yoksa site kendi kendisiyle çelişir.
  */
 
 const PRINCIPLES = [
   {
-    icon: KeyRound,
-    title: 'Kaynak kod sizin',
-    desc: 'Proje bitince kod deposu ve tüm hesaplar size devredilir. Bize bağımlı kalmazsınız, dilediğiniz geliştiriciyle devam edebilirsiniz.',
+    icon: FileSignature,
+    title: 'Yetki belgesi olmadan hiçbir test başlamaz',
+    desc: 'İmzalı yetki belgesi, gizlilik sözleşmesi, hedef listesi, yasaklı işlemler ve test penceresi yazılı olarak netleşmeden tek bir istek gönderilmez.',
   },
   {
     icon: Receipt,
     title: 'Sabit fiyat, sürpriz fatura yok',
-    desc: 'Kapsam dokümanı imzalandıktan sonra fiyat değişmez. Kapsam dışı bir talep gelirse önce onayınızı alır, sonra yazarız.',
+    desc: 'Kapsam dokümanı imzalandıktan sonra fiyat değişmez. Kapsam dışı bir talep gelirse önce onayınızı alır, sonra çalışırız.',
   },
   {
-    icon: Gauge,
-    title: 'Performans teslim şartıdır',
-    desc: 'Lighthouse performans skoru 90 altında kalan bir siteyi teslim etmiyoruz. Ölçüm raporunu teslimatla birlikte paylaşıyoruz.',
-  },
-  {
-    icon: Eye,
-    title: 'Haftalık canlı önizleme',
-    desc: 'Geliştirme boyunca her hafta çalışan bir link alırsınız. İlerlemeyi görür, yanlış giden bir şey varsa erken söylersiniz.',
+    icon: RefreshCw,
+    title: 'Doğrulama testi ücretsiz',
+    desc: 'Kapattığınızı bildirdiğiniz bulgular yeniden denenir ve sonuç rapora doğrulama eki olarak işlenir. Bu adım ayrıca ücretlendirilmez.',
   },
   {
     icon: LifeBuoy,
-    title: 'Teslim sonrası 30 gün destek',
-    desc: 'Yayına aldıktan sonraki ilk 30 gün içindeki hata düzeltmeleri ücretsizdir. Sonrası için bakım paketi opsiyoneldir.',
+    title: 'Tek mesajla duran bir çalışma',
+    desc: 'Yük ve DDoS testleri kapsam dışıdır, yıkıcı işlemler baştan yasaklanır. Test boyunca açık bir acil durum hattı bulunur; tek mesajla çalışma durur.',
   },
   {
     icon: Lock,
-    title: 'Veri ve gizlilik',
-    desc: 'Paylaştığınız içerik, müşteri verisi ve ticari bilgi üçüncü taraflarla paylaşılmaz. Talep ederseniz NDA imzalarız.',
+    title: 'En az veriye dokunulur, hiçbiri saklanmaz',
+    desc: 'Açığı kanıtlamak için gereken en küçük örneklem alınır. Ekran görüntüleri rapora girmeden önce anonimleştirilir, test bitiminde çalışma ortamı temizlenir.',
+  },
+  {
+    icon: Scale,
+    title: 'Rolümüzün sınırını söyleriz',
+    desc: 'ISO 27001 belgesini TÜRKAK akredite bir kuruluş verir; danışmanlık verdiğim kurumun belgelendirme denetimini yapmam. Kimsenin veremeyeceği bir garantiyi de vermeyiz.',
   },
 ];
 
@@ -51,9 +54,9 @@ export function PrinciplesSection() {
         <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-brand-400 sm:text-xs">
           // Çalışma İlkelerimiz
         </span>
-        <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
           Sözlü Değil, Yazılı Taahhüt
-        </h2>
+        </h1>
         <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed text-slate-400 sm:text-sm">
           Aşağıdakiler pazarlama cümlesi değil, sözleşmeye giren maddeler.
         </p>

@@ -8,9 +8,14 @@ export const SITE = {
   name: 'Kodara',
   /** Wordmark'ın küçük harfli hâli (logo bileşeni bunu kullanır). */
   wordmark: 'kodara',
-  tagline: 'Dijital Ürün & Web Mimarisi Ajansı',
+  /**
+   * Sekmede ve arama sonucunda görünen alt başlık. Konumlandırma güvenlik ve
+   * uyuma daraltıldığı için buradaki ifade de daraltıldı; web tarafının kendi
+   * başlığı /web-servis sayfasında ayrıca tanımlı.
+   */
+  tagline: 'Sızma Testi, ISO 27001 ve KVKK Uyumu',
   description:
-    'Kodara, işletmeler için yüksek hızlı web siteleri, e-ticaret sistemleri ve özel yazılımlar geliştirir. Next.js tabanlı modern mimari, teknik SEO ve dönüşüm odaklı tasarım.',
+    'Kodara; sızma testi, altyapı güvenlik analizi, ISO 27001 belgelendirmeye hazırlık, KVKK uyum danışmanlığı ve marka-patent tescili yürütür. Kapsam ve fiyat yazılı olarak sabitlenir.',
   locale: 'tr_TR',
 } as const;
 
@@ -114,9 +119,9 @@ export function whatsAppLink(message: string): string {
 export const PUBLIC_ROUTES = [
   '/',
   // Kurumsal hizmet sayfaları — organik trafik hedefi
-  '/web-tasarim',
-  '/seo',
-  '/reklam-yonetimi',
+  // NOT: /web-tasarim, /seo ve /reklam-yonetimi (ve /teklif sayfaları) pasife
+  // alındı; sayfaları ayakta ama noindex verildi ve site haritasından çıkarıldı.
+  // Hizmet yeniden açılırsa bu rotaları da buraya geri eklemek gerekiyor.
   '/kvkk-danismanlik',
   '/marka-patent-tescili',
   '/pentest',
@@ -127,18 +132,14 @@ export const PUBLIC_ROUTES = [
   '/sss',
   '/ilkeler',
   // Hizmetlerin reklam açılış sayfaları
-  '/web-tasarim/teklif',
-  '/seo/teklif',
-  '/reklam-yonetimi/teklif',
   '/kvkk-danismanlik/teklif',
   '/marka-patent-tescili/teklif',
   '/kvkk',
   '/gizlilik',
   '/cerez-politikasi',
-  '/demo/gurme-restoran',
-  '/demo/moda-eticaret',
-  '/demo/otel-rezervasyon',
-  '/demo/klinik-saglik',
-  '/demo/emlak-portfoy',
-  '/demo/spor-salonu',
+  // NOT: Altı /demo/... sayfası site haritasından çıkarıldı ve noindex verildi.
+  // Bunlar web tasarım vitrini; artık yalnızca gizli /web-servis hub'ı
+  // üzerinden, reklam trafiğiyle ulaşılıyor. Sayfalar ayakta duruyor —
+  // buraya geri eklemek ve ilgili page.tsx'lerdeki `robots` satırını silmek
+  // onları yeniden dizine açar.
 ] as const;

@@ -7,12 +7,12 @@ import { TurnstileField, isTurnstileEnabled } from '@/components/TurnstileField'
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 
 const SERVICES = [
-  { id: 'e-commerce', label: 'E-Ticaret' },
-  { id: 'restaurant', label: 'Restoran/Kafe' },
-  { id: 'hotel', label: 'Otel/Konaklama' },
-  { id: 'custom', label: 'Özel AI Çözümü' },
-  { id: 'seo', label: 'SEO & Reklam' },
-  { id: 'other', label: 'Diğer' },
+  { id: 'pentest', label: 'Sızma Testi (Pentest)' },
+  { id: 'guvenlik-analizi', label: 'Güvenlik Analizi / Ön Denetim' },
+  { id: 'iso-27001', label: 'ISO 27001 Hazırlık' },
+  { id: 'kvkk', label: 'KVKK Danışmanlığı' },
+  { id: 'marka-patent', label: 'Marka & Patent Tescili' },
+  { id: 'other', label: 'Diğer / Emin değilim' },
 ] as const;
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -22,7 +22,7 @@ export const LeadCaptureSection: React.FC = () => {
     name: '',
     email: '',
     website: '',
-    service: 'e-commerce',
+    service: 'pentest',
     message: '',
     company: '', // honeypot — gizli, sadece botlar doldurur
   });
@@ -74,10 +74,10 @@ export const LeadCaptureSection: React.FC = () => {
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-10 md:p-12 backdrop-blur-md shadow-2xl">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white mb-3">
-            Projenizi Birlikte Hayata Geçirelim
+            Kapsamı Birlikte Çıkaralım
           </h2>
           <p className="text-slate-400 text-sm md:text-base">
-            Sistemlerimiz hakkında bilgi almak ve dijital dönüşümünüzü başlatmak için formu doldurun.
+            Güvenlik ve uyum tarafındaki ihtiyacınızı yazın; kapsamı, süreyi ve fiyatı yazılı olarak çıkaralım.
           </p>
         </div>
 
@@ -143,7 +143,7 @@ export const LeadCaptureSection: React.FC = () => {
 
             <div>
               <label htmlFor="lead-website" className="block text-xs font-medium text-slate-400 mb-1">
-                Web Sitesi (Opsiyonel)
+                Web Sitesi / Kapsamdaki Adres (Opsiyonel)
               </label>
               <input
                 id="lead-website"
@@ -182,7 +182,7 @@ export const LeadCaptureSection: React.FC = () => {
 
             <div>
               <label htmlFor="lead-message" className="block text-xs font-medium text-slate-400 mb-1">
-                Projeniz Hakkında (Opsiyonel)
+                İhtiyacınız Hakkında (Opsiyonel)
               </label>
               <textarea
                 id="lead-message"
@@ -214,7 +214,7 @@ export const LeadCaptureSection: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <span>Ücretsiz Danışmanlık Alın</span>
+                  <span>Kapsam Görüşmesi İstiyorum</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}

@@ -7,11 +7,11 @@ import { TurnstileField, isTurnstileEnabled } from '@/components/TurnstileField'
 import { Send, CheckCircle2, Loader2 } from 'lucide-react';
 
 const SERVICES = [
-  { id: 'e-commerce', label: 'E-Ticaret' },
-  { id: 'custom', label: 'Kurumsal / Özel Yazılım' },
-  { id: 'restaurant', label: 'Restoran / Kafe' },
-  { id: 'hotel', label: 'Otel / Konaklama' },
-  { id: 'seo', label: 'SEO & Dijital Pazarlama' },
+  { id: 'pentest', label: 'Sızma Testi (Pentest)' },
+  { id: 'guvenlik-analizi', label: 'Güvenlik Analizi / Ön Denetim' },
+  { id: 'iso-27001', label: 'ISO 27001 Hazırlık' },
+  { id: 'kvkk', label: 'KVKK Danışmanlığı' },
+  { id: 'marka-patent', label: 'Marka & Patent Tescili' },
   { id: 'other', label: 'Diğer / Emin değilim' },
 ] as const;
 
@@ -22,7 +22,7 @@ export function ContactForm() {
     name: '',
     email: '',
     website: '',
-    service: 'custom',
+    service: 'pentest',
     message: '',
     company: '', // honeypot
   });

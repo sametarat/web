@@ -15,14 +15,14 @@ const CARDS = [
     icon: ShieldCheck,
     href: '/ilkeler',
     title: 'Çalışma İlkelerimiz',
-    desc: 'Kaynak kod sizin, fiyat sabit, performans teslim şartı. Sözleşmeye giren maddeler ve dört adımlı süreç.',
+    desc: 'Yetki belgesi olmadan test yok, fiyat sabit, doğrulama testi ücretsiz. Sözleşmeye giren maddeler ve dört adımlı süreç.',
     cta: 'İlkeleri ve süreci gör',
   },
   {
     icon: HelpCircle,
     href: '/sss',
     title: 'Sık Sorulan Sorular',
-    desc: 'Teslim süresi, fiyatlandırma, siteyi kendiniz güncelleme, proje yarıda kalırsa ne olacağı.',
+    desc: 'Bir çalışma ne kadar sürer, fiyat neye göre belirlenir, test sırasında sistem çöker mi, rapor kimde kalır.',
     cta: 'Soruları oku',
   },
 ];
