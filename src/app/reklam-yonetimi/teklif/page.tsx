@@ -25,7 +25,8 @@ export const metadata: Metadata = {
     url: '/reklam-yonetimi/teklif',
     type: 'website',
   },
-  robots: { index: true, follow: true },
+  // Hizmet pasife alındı: sayfa ayakta kalıyor ama arama motorlarına kapalı.
+  robots: { index: false, follow: true },
 };
 
 export default function ReklamYonetimiTeklifPage() {

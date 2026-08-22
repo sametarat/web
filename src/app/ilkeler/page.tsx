@@ -9,14 +9,13 @@ import { ProcessSection } from '@/components/ProcessSection';
 
 export const metadata: Metadata = {
   title: 'Çalışma İlkelerimiz',
-  description: `${SITE.name} ile çalışırken ne bekleyeceğiniz: sabit fiyat, kaynak kodun size devri, performans eşiği, haftalık canlı önizleme ve teslim sonrası destek.`,
+  description: `${SITE.name} ile çalışırken ne bekleyeceğiniz: yetkilendirme sözleşmesi olmadan test başlamaması, sabit fiyat, ücretsiz doğrulama testi, veriye en az dokunma ilkesi ve dört adımlı süreç.`,
   alternates: { canonical: '/ilkeler' },
   openGraph: { title: `Çalışma İlkelerimiz | ${SITE.name}`, url: '/ilkeler' },
 };
 
 const NAV = [
   { href: '/#hizmetler', label: 'Hizmetler' },
-  { href: '/#demolar', label: 'Demolar' },
   { href: '/sss', label: 'SSS' },
 ];
 

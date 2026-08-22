@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'Meridyen Gayrimenkul — Emlak Portföy Demosu',
   description: `${SITE.name} tarafından geliştirilen emlak web sitesi demosu: çok kriterli portföy filtreleme, canlı arama, fiyat sıralaması ve randevu talep akışı.`,
   alternates: { canonical: '/demo/emlak-portfoy' },
+  // Vitrin demosu: dizine kapalı, yalnızca /web-servis üzerinden reklam trafiğine açık.
+  robots: { index: false, follow: true },
   openGraph: {
     title: 'Meridyen Gayrimenkul — Emlak Portföy Demosu',
     description:

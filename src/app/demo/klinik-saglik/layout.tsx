@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'Vitalis Klinik — Diş & Estetik Klinik Demosu',
   description: `${SITE.name} tarafından geliştirilen klinik web sitesi demosu: kategori filtreli tedavi kataloğu, hekim kadrosu ve online randevu akışı.`,
   alternates: { canonical: '/demo/klinik-saglik' },
+  // Vitrin demosu: dizine kapalı, yalnızca /web-servis üzerinden reklam trafiğine açık.
+  robots: { index: false, follow: true },
   openGraph: {
     title: 'Vitalis Klinik — Diş & Estetik Klinik Demosu',
     description: 'Tedavi kataloğu, hekim kadrosu ve online randevu akışıyla örnek klinik sitesi.',

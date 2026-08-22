@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'Aetheria Hotel — Otel Rezervasyon Demosu',
   description: `${SITE.name} tarafından geliştirilen otel web sitesi demosu: tarih bazlı müsaitlik taraması, oda portföyü ve direkt rezervasyon akışı.`,
   alternates: { canonical: '/demo/otel-rezervasyon' },
+  // Vitrin demosu: dizine kapalı, yalnızca /web-servis üzerinden reklam trafiğine açık.
+  robots: { index: false, follow: true },
   openGraph: {
     title: 'Aetheria Hotel — Otel Rezervasyon Demosu',
     description: 'Tarih bazlı arama, oda portföyü ve direkt rezervasyon akışıyla örnek otel sitesi.',

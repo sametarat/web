@@ -25,13 +25,14 @@ export const metadata: Metadata = {
     url: '/web-tasarim/teklif',
     type: 'website',
   },
-  robots: { index: true, follow: true },
+  // Hizmet pasife alındı: sayfa ayakta kalıyor ama arama motorlarına kapalı.
+  robots: { index: false, follow: true },
 };
 
 export default function WebTasarimTeklifPage() {
   return (
-    <div className="min-h-screen bg-surface text-slate-100">
-      <ServiceLandingBody service={service} />
+    <div className="min-h-screen">
+      <ServiceLandingBody service={service} theme="light" />
     </div>
   );
 }

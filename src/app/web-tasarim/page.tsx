@@ -27,12 +27,12 @@ export const metadata: Metadata = {
     url: '/web-tasarim',
     type: 'website',
   },
-  robots: { index: true, follow: true },
+  // Hizmet pasife alındı: sayfa ayakta kalıyor ama arama motorlarına kapalı.
+  robots: { index: false, follow: true },
 };
 
 const NAV = [
   { href: '/#hizmetler', label: 'Hizmetler' },
-  { href: '/#demolar', label: 'Demolar' },
   { href: '/ilkeler', label: 'İlkelerimiz' },
   { href: '/sss', label: 'SSS' },
 ];

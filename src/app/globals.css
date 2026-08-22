@@ -7,28 +7,65 @@
 @import "tailwindcss" source(none);
 @source "../../src";
 
-/**
- * Kodara marka teması.
- * Ana renk: iris/violet. İkincil vurgu: emerald (metrik ve "başarı" durumları).
- * Tailwind v4'te @theme içindeki --color-* değişkenleri bg-brand-500, text-brand-400,
- * border-brand-500/20 gibi tüm yardımcı sınıfları otomatik üretir.
- */
-@theme {
-  --color-brand-50: #eef3fb;
-  --color-brand-100: #dce6f6;
-  --color-brand-200: #b9cdec;
-  --color-brand-300: #8fadde;
-  --color-brand-400: #6b8fcd;
-  --color-brand-500: #4a70b4;
-  --color-brand-600: #375a97;
-  --color-brand-700: #2b477a;
-  --color-brand-800: #23385e;
-  --color-brand-900: #1a2942;
-  --color-brand-950: #101927;
+/* Tailwind v4'te @theme içindeki --color-* değişkenleri bg-brand-500,
+   text-accent-400, border-brand-500/20 gibi tüm yardımcı sınıfları üretir. */
+/* ============================================================
+   KODARA MARKA SİSTEMİ
+   ============================================================
+   Tek marka, iki yüz. Kodara iki şey yapıyor: görünmeyeni buluyor
+   (güvenlik, uyum) ve görüneni kuruyor (web, pazarlama). Bunları
+   birbirine bağlayan fikir KANIT: her iki tarafta da satılan şey
+   "elinize yazılı bir belge geçecek" sözü.
 
-  /* Nötr siyah yerine hafif mavi kaçan bir zemin: marka mürekkebi mavi,
-     zemin de aynı ailenin en koyu ucunda dursun. */
-  --color-surface: #07090f;
+   Bu yüzden sistemin taşıyıcı motifi ÖLÇÜ ÇİZGİSİ (bkz. .dim-rule,
+   .draft-dim): iki ucunda serif olan ince bir çizgi. Ölçmek =
+   kanıtlamak. Aynı motif koyu yüzde de kâğıt yüzde de kullanılıyor;
+   iki sayfa birbirine benzemese de aynı elden çıktığı anlaşılıyor.
+
+   RENK
+     Mavi   → yapı. Başlık, çerçeve, birincil eylem. Kurumsal çapa.
+     Amber  → işaret. Sayfada göz nereye gitsin isteniyorsa oraya,
+              çok az. "Kalemle işaretlenmiş" hissi verir; korku
+              satan kırmızı ya da her yeri boyayan yeşil değil.
+     Yeşil  → yalnızca DOĞRULANDI durumları (emerald). Süs değil.
+
+   ÖNCEKİ SORUN: eski mavi (#4a70b4) düşük doygunluktaydı, sayfa
+   neredeyse tek renkti ve "cansız" okunuyordu. Ton korundu, doygunluk
+   yükseltildi; kurumsal kimlik bozulmadan sayfa canlandı. */
+@theme {
+  /* MARKA RENGİ — bordo.
+     Mavi bırakıldı: her ajans mavi kullanıyor ve düşük doygunlukta
+     tutulduğunda sayfa cansız kalıyordu. Bordo hem ayırt edici hem de
+     denetim/rapor ciddiyetiyle uyumlu; korku satan parlak kırmızı değil,
+     kısılmış ve ağır bir kırmızı.
+
+     KULLANIM DİSİPLİNİ: bordo eylem ve işaret rengidir. Birincil düğme,
+     bölüm numarası, işaretlenmiş kelime ve ikonlar. Zemin ya da geniş
+     yüzey olarak KULLANILMAZ; azlığı değerini koruyor. */
+  --color-brand-50: #fbf1f2;
+  --color-brand-100: #f7e1e3;
+  --color-brand-200: #eec2c7;
+  --color-brand-300: #d98d84;
+  --color-brand-400: #c45f56;
+  --color-brand-500: #a53b36;
+  --color-brand-600: #8a2119;
+  --color-brand-700: #6f1a14;
+  --color-brand-800: #5c1219;
+  --color-brand-900: #470e14;
+  --color-brand-950: #2a080c;
+
+  /* accent-* artık bordonun kendisi. Eskiden ayrı bir amber ailesiydi;
+     iki vurgu rengi birden sayfayı dağıtıyordu. Tek vurgu, tek ses. */
+  --color-accent-200: #eec2c7;
+  --color-accent-300: #d98d84;
+  --color-accent-400: #c45f56;
+  --color-accent-500: #a53b36;
+  --color-accent-600: #8a2119;
+  --color-accent-700: #6f1a14;
+
+  /* Zemin: mavi lacivert değil, hafif sıcak antrasit. Bordo mavi zeminde
+     mor kaçıyordu; nötr-sıcak kömür üzerinde yerine oturuyor. */
+  --color-surface: #15171b;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   /* Başlıklar gövde metninden ayrı bir yüz kullanıyor; hiyerarşi yalnızca
@@ -41,6 +78,63 @@
   color-scheme: dark;
   --background: var(--color-surface);
   --foreground: #e2e8f0;
+}
+
+/* --- Anlamsal yüzey/mürekkep jetonları ---
+   Sayfa gövdeleri artık `text-white` / `bg-slate-900` gibi sabit renkler yerine
+   bu değişkenleri kullanıyor. Böylece aynı bileşen tek bir kapsayıcı sınıfıyla
+   koyu ya da açık temada render edilebiliyor — reklam açılış sayfalarını
+   ölçerek karşılaştırabilmek için gerekliydi.
+
+   Varsayılan: koyu. `.theme-light` bir sarmalayıcıya konursa altındaki her şey
+   açık temaya döner. */
+.theme-dark,
+:root {
+  --page: var(--color-surface);
+  --ink: #f5f6f7;
+  --ink-2: #c7cbd1;
+  --ink-3: #949aa3;
+  --ink-4: #6b7280;
+  /* Paneller zeminden ayrışsın diye biraz daha açık ve mavi kaçıyor;
+     eskiden neredeyse zeminle aynıydı ve kart kenarları kayboluyordu. */
+  --panel: #1c1f25;
+  --panel-2: #101216;
+  --field: #101216;
+  --line: #2a2e36;
+  --line-soft: rgb(255 255 255 / 0.07);
+  --accent: var(--color-brand-400);
+  --mark: var(--color-brand-500);
+  --accent-soft-bg: color-mix(in oklab, var(--color-brand-500) 14%, transparent);
+  --accent-soft-border: color-mix(in oklab, var(--color-brand-400) 30%, transparent);
+  --shadow-card: 0 18px 40px -20px rgb(0 0 0 / 0.7);
+}
+
+/* Açık tema: zemin saf beyaz değil, hafif mavi kaçan çok açık bir gri.
+   Saf beyaz parlak ekranda yorucu ve kartlar zeminden ayrışmıyor. */
+.theme-light {
+  color-scheme: light;
+  --page: #f6f6f4;
+  --ink: #15171b;
+  --ink-2: #3d434c;
+  --ink-3: #5f6670;
+  --ink-4: #8a9099;
+  --panel: #ffffff;
+  --panel-2: #eeeeec;
+  --field: #ffffff;
+  --line: #dedeD9;
+  --line-soft: #e8e8e4;
+  /* Açık zeminde brand-300/400 kontrast eşiğini geçmiyor; koyu uca iniyoruz. */
+  --accent: var(--color-brand-700);
+  --mark: var(--color-brand-600);
+  --accent-soft-bg: color-mix(in oklab, var(--color-brand-500) 9%, white);
+  --accent-soft-border: color-mix(in oklab, var(--color-brand-500) 28%, white);
+  --shadow-card: 0 14px 34px -22px rgb(13 21 38 / 0.45);
+}
+
+.theme-light,
+.theme-dark {
+  background: var(--page);
+  color: var(--ink-2);
 }
 
 /* Başlıkların satır sonlarını dengeler — uzun Türkçe başlıklarda tek kelimelik
@@ -83,6 +177,51 @@ body {
   }
 }
 
+
+/* --- ÖLÇÜ ŞERİDİ ---
+   Markanın taşıyıcı motifi. Bölüm başlarında başlığın yanında uzayan,
+   üzerinde cetvel çentikleri olan ince bir şerit. İki yüzde de aynı;
+   rengini bulunduğu temadan alıyor, o yüzden koyu sayfada da kâğıt
+   sayfada da yerli duruyor.
+
+   Süs değil: "burası ölçülmüş bir bölüm" diyor. Kodara'nın iki işi de
+   ölçüp yazılı belge teslim etmek üzerine kurulu. */
+.rule-tape {
+  position: relative;
+  height: 10px;
+  background-image: repeating-linear-gradient(
+    to right,
+    currentColor 0,
+    currentColor 1px,
+    transparent 1px,
+    transparent 9px
+  );
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  background-size: 9px 5px;
+  opacity: 0.45;
+}
+
+.rule-tape::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: currentColor;
+}
+
+/* İşaretli kelime — kalemle altı çizilmiş gibi.
+   İLK DENEME YANLIŞTI: 0.36em'lik yarı saydam blok koyu zeminde çamurlu
+   kahverengi bir kutuya dönüşüyordu. Artık ince, tam doygunlukta bir
+   alt çizgi; kelimeyi işaretliyor, arkasını boyamıyor. */
+.marked {
+  background-image: linear-gradient(to top, var(--mark, #e37d34) 0 0.12em, transparent 0.12em);
+  background-repeat: no-repeat;
+  background-position: left bottom -0.06em;
+  background-size: 100% 100%;
+  padding-bottom: 0.06em;
+}
+
 /* --- Hero aurora: yavaşça sürüklenen marka renkli ışık lekeleri --- */
 @keyframes aurora-drift {
   0%,
@@ -109,9 +248,9 @@ body {
 /* Kenarları taşan yumuşak ışıma — hero'nun arkasında derinlik hissi verir */
 .hero-glow {
   background: radial-gradient(
-    60% 60% at 50% 0%,
-    color-mix(in oklab, var(--color-brand-500) 28%, transparent) 0%,
-    transparent 70%
+    62% 62% at 50% 0%,
+    color-mix(in oklab, var(--color-brand-600) 16%, transparent) 0%,
+    transparent 72%
   );
 }
 
@@ -148,7 +287,7 @@ body {
 
 .lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 18px 40px -20px rgb(0 0 0 / 0.7);
+  box-shadow: var(--shadow-card, 0 18px 40px -20px rgb(0 0 0 / 0.7));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -232,6 +371,95 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ============================================================
+   TEKNİK FÖY — /web-servis sayfasının kendine ait görsel dili
+   ============================================================
+   Güvenlik tarafı koyu; web tarafı kâğıt. İki iş ayrı ayrı
+   reklamlanacağı için görsel olarak da ayrışmaları isteniyor.
+   Dil, teknik çizim föyünden alındı: kot çizgileri, ölçü
+   okları, kılavuz çizgili kâğıt ve sağ alttaki antet bloğu.
+   Kırmızı-turuncu yalnızca "revizyon kalemi" olarak, sadece
+   ölçü etiketlerinde kullanılıyor — sayfada başka yerde yok. */
+.draft {
+  color-scheme: light;
+  --paper: #f6f6f4;
+  --card: #ffffff;
+  --ink: #15171b;
+  --graphite: #3d434c;
+  --faint: #8a9099;
+  --rule: #dededa;
+  --rule-soft: #ebebe7;
+  /* Kâğıt tarafta da aynı bordo; adı `--blue` kaldı çünkü çok yerde
+     geçiyor, anlamı "birincil eylem rengi". */
+  --blue: var(--color-brand-700);
+  --mark: var(--color-brand-600);
+  background: var(--paper);
+  color: var(--graphite);
+}
+
+/* Kılavuz çizgili kâğıt. sheet-grid'in kâğıt sürümü: çizgiler
+   koyu zeminde açık, burada koyu olmak zorunda. */
+.draft-paper {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--blue) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--blue) 9%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+/* Ölçü çizgisinin kâğıt sürümü — iki ucunda dikey serif. */
+.draft-dim {
+  position: relative;
+  height: 1px;
+  background: var(--rule);
+}
+
+.draft-dim::before,
+.draft-dim::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 1px;
+  height: 9px;
+  background: var(--mark);
+}
+
+.draft-dim::before { left: 0; }
+.draft-dim::after { right: 0; }
+
+/* Çizimin kendi kendini çizmesi — sayfa açılırken bir kez.
+   Hareket azaltma tercihinde çizgiler baştan tam görünür. */
+@keyframes draft-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.draft-stroke {
+  stroke-dasharray: var(--len, 400);
+  stroke-dashoffset: var(--len, 400);
+  animation: draft-draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes draft-fade {
+  to { opacity: 1; }
+}
+
+.draft-late {
+  opacity: 0;
+  animation: draft-fade 0.5s ease forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draft-stroke {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .draft-late {
+    opacity: 1;
+    animation: none;
+  }
 }
 
 /* --- Hero otomatik geçiş sayacı ---

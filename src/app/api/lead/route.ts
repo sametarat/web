@@ -5,12 +5,20 @@ import { verifyTurnstile } from '@/lib/turnstile';
 /** İletişim formundan gelen lead'leri karşılar. */
 
 const SERVICE_LABELS: Record<string, string> = {
+  // Güncel seçenekler — formlardaki id'ler hizmet slug'larıyla aynı.
+  pentest: 'Sızma Testi (Pentest)',
+  'guvenlik-analizi': 'Güvenlik Analizi / Ön Denetim',
+  'iso-27001': 'ISO 27001 Hazırlık',
+  kvkk: 'KVKK Danışmanlığı',
+  'marka-patent': 'Marka & Patent Tescili',
+  other: 'Diğer / Belirsiz',
+  // Eski id'ler bilerek duruyor: önbellekten açılmış bir sayfa hâlâ bunları
+  // gönderebilir, o zaman e-postada ham id yerine okunabilir etiket çıksın.
   'e-commerce': 'E-Ticaret',
   restaurant: 'Restoran / Kafe',
   hotel: 'Otel / Konaklama',
   custom: 'Özel / Kurumsal Yazılım',
   seo: 'SEO & Dijital Pazarlama',
-  other: 'Diğer / Belirsiz',
 };
 
 const formSchema = z.object({
