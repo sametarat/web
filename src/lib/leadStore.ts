@@ -161,7 +161,10 @@ export async function storeLead(lead: Lead): Promise<string | null> {
     source: lead.source,
   };
 
-  const ok = await redis(['SET', `lead:${record.id}`, JSON.stringify(record)]);
+  // KVKK: kayıt saklama süresi dolunca kendiliğinden silinsin.
+  const ok = await redis([
+    'SET', `lead:${record.id}`, JSON.stringify(record), 'EX', retentionSeconds(),
+  ]);
   if (ok === null) return null;
   await redis(['ZADD', 'leads:index', now, record.id]);
   return record.id;
@@ -178,14 +181,22 @@ export async function listLeads(limit = 300): Promise<StoredLead[]> {
   if (!raw) return [];
 
   const out: StoredLead[] = [];
-  for (const item of raw) {
-    if (!item) continue;
+  const stale: string[] = [];
+  raw.forEach((item, i) => {
+    if (!item) {
+      // Kaydın süresi dolmuş (KVKK saklama süresi) ama indekste kimliği kalmış.
+      stale.push(ids[i]);
+      return;
+    }
     try {
       out.push(JSON.parse(item) as StoredLead);
     } catch {
-      // Bozuk kayıt listeyi düşürmesin.
+      // Bozuk kayıt listeyi düşürmesin; indeksten de düşür.
+      stale.push(ids[i]);
     }
-  }
+  });
+
+  if (stale.length) await redis(['ZREM', 'leads:index', ...stale]);
   return out;
 }
 
@@ -209,7 +220,8 @@ export async function updateLead(
   if (patch.status) record.status = patch.status;
   if (typeof patch.note === 'string') record.note = patch.note.slice(0, 2000);
 
-  const ok = await redis(['SET', `lead:${id}`, JSON.stringify(record)]);
+  // KEEPTTL: not/durum güncellemesi saklama süresini sıfırlamasın.
+  const ok = await redis(['SET', `lead:${id}`, JSON.stringify(record), 'KEEPTTL']);
   return ok === null ? null : record;
 }
 
@@ -285,4 +297,63 @@ export async function seenBefore(
   // result === 'OK' → yazıldı, yani ilk kez görülüyor.
   // result === null → NX başarısız, yani zaten vardı.
   return res.result === null;
+}
+
+/* ============================================================
+   GİRİŞ DENEMESİ KİLİDİ
+   ============================================================ */
+
+/**
+ * CRM girişinde IP başına kaba kuvvet koruması.
+ *
+ * Başarısız denemeyi sayar; eşiği aşınca kilitler. Sayaç paylaşımlı depoda
+ * olduğu için sunucu örnekleri arasında da geçerli. Depo yoksa `null` döner —
+ * çağıran taraf yalnızca gecikmeye güvenmek zorunda kalır, o yüzden depo
+ * yapılandırması yayın öncesi zorunlu sayılmalı.
+ */
+export async function loginAttemptStatus(
+  ip: string,
+  maxAttempts: number,
+): Promise<{ locked: boolean; remaining: number } | null> {
+  if (!isStoreConfigured()) return null;
+  const count = await redis<number>(['GET', `login:${ip}`]);
+  const used = Number(count ?? 0);
+  return { locked: used >= maxAttempts, remaining: Math.max(0, maxAttempts - used) };
+}
+
+/** Başarısız denemeyi kaydeder ve kilitlenip kilitlenmediğini döner. */
+export async function recordFailedLogin(
+  ip: string,
+  maxAttempts: number,
+  lockSeconds: number,
+): Promise<boolean | null> {
+  if (!isStoreConfigured()) return null;
+  const key = `login:${ip}`;
+  const count = await redis<number>(['INCR', key]);
+  if (count === null) return null;
+  // Her başarısız denemede pencereyi yenile: saldırgan beklemeyi öğrensin.
+  await redis(['EXPIRE', key, lockSeconds]);
+  return count >= maxAttempts;
+}
+
+/** Başarılı girişte sayacı sıfırla. */
+export async function clearFailedLogins(ip: string): Promise<void> {
+  if (!isStoreConfigured()) return;
+  await redis(['DEL', `login:${ip}`]);
+}
+
+/* ============================================================
+   KVKK — SAKLAMA SÜRESİ
+   ============================================================
+   Kişisel veri süresiz saklanamaz. Lead kayıtlarına otomatik son kullanma
+   tarihi koyuyoruz; süre dolunca Redis kaydı kendisi siliyor, indeksteki
+   artık kimlikler de okuma sırasında temizleniyor.
+
+   Varsayılan 365 gün. LEAD_RETENTION_DAYS ile değiştirilebilir.
+   Aydınlatma metnindeki saklama süresiyle AYNI olmalı.
+*/
+export function retentionSeconds(): number {
+  const days = Number(process.env.LEAD_RETENTION_DAYS ?? 365);
+  const safe = Number.isFinite(days) && days > 0 ? Math.min(days, 3650) : 365;
+  return Math.floor(safe * 24 * 60 * 60);
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { sendLeadEmail } from '@/lib/leads';
+import { verifyTurnstile } from '@/lib/turnstile';
 
 /** İletişim formundan gelen lead'leri karşılar. */
 
@@ -23,6 +24,8 @@ const formSchema = z.object({
   source: z.enum(['form', 'landing', 'pentest', 'guvenlik-analizi', 'iso-27001', 'is-ortakligi', 'hizmet', 'hizmet-teklif']).optional(),
   /** Bot tuzağı: gerçek kullanıcılar bu gizli alanı doldurmaz. */
   company: z.string().max(0).optional(),
+  /** Cloudflare Turnstile jetonu. Anahtarlar tanımsızsa boş gelir ve atlanır. */
+  turnstileToken: z.string().max(4000).optional(),
 });
 
 export async function POST(req: Request) {
@@ -46,6 +49,20 @@ export async function POST(req: Request) {
   // Honeypot doluysa bot: başarılıymış gibi dön, hiçbir şey gönderme.
   if (company) {
     return Response.json({ ok: true });
+  }
+
+  // Turnstile doğrulaması. Anahtarlar tanımsızsa bu adım sessizce atlanıyor.
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
+    req.headers.get('x-real-ip') ??
+    undefined;
+  const check = await verifyTurnstile(parsed.data.turnstileToken, ip);
+  if (!check.ok) {
+    console.warn(`[lead] Turnstile reddetti (${check.reason}) — ip: ${ip ?? 'bilinmiyor'}`);
+    return Response.json(
+      { error: 'Güvenlik doğrulaması tamamlanamadı. Sayfayı yenileyip tekrar deneyin.' },
+      { status: 400 },
+    );
   }
 
   const result = await sendLeadEmail({
