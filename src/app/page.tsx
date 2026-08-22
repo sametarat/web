@@ -4,7 +4,7 @@ import Link from 'next/link';
 import CyberChatbot from '@/components/CyberChatbot';
 import { LeadCaptureSection } from '@/components/LeadCaptureSection';
 import { SiteHeader } from '@/components/SiteHeader';
-import { HeroStatement } from '@/components/HeroStatement';
+import { HeroSlider } from '@/components/HeroSlider';
 import { Reveal, RevealGroup, RevealItem } from '@/components/Reveal';
 import { ACTIVE_SERVICE_GROUPS, cardsByGroup } from '@/content/services';
 import { ServiceIcon } from '@/components/service/ServiceIcon';
@@ -43,7 +43,7 @@ export default function Home() {
       {/* Yatay boşluk bölümlerin kendisinde: tam genişlik bantlar ancak
           main padding'siz olduğunda gerçekten kenara dayanabiliyor. */}
       <main className="relative z-10 flex-1 pb-16 sm:pb-20">
-        <HeroStatement />
+        <HeroSlider />
 
         {/* 01 — Hizmetler: yalnızca aktif gruplar listeleniyor. Büyüme tarafı
             pasife alındıktan sonra boş bir grup başlığı kalmasın diye ızgara

@@ -45,23 +45,23 @@
   --color-brand-50: #fbf1f2;
   --color-brand-100: #f7e1e3;
   --color-brand-200: #eec2c7;
-  --color-brand-300: #d98d84;
-  --color-brand-400: #c45f56;
-  --color-brand-500: #a53b36;
-  --color-brand-600: #8a2119;
-  --color-brand-700: #6f1a14;
-  --color-brand-800: #5c1219;
+  --color-brand-300: #c4837c;
+  --color-brand-400: #a85148;
+  --color-brand-500: #8c322f;
+  --color-brand-600: #6e1d1a;
+  --color-brand-700: #591714;
+  --color-brand-800: #47100f;
   --color-brand-900: #470e14;
   --color-brand-950: #2a080c;
 
   /* accent-* artık bordonun kendisi. Eskiden ayrı bir amber ailesiydi;
      iki vurgu rengi birden sayfayı dağıtıyordu. Tek vurgu, tek ses. */
   --color-accent-200: #eec2c7;
-  --color-accent-300: #d98d84;
-  --color-accent-400: #c45f56;
-  --color-accent-500: #a53b36;
-  --color-accent-600: #8a2119;
-  --color-accent-700: #6f1a14;
+  --color-accent-300: #c4837c;
+  --color-accent-400: #a85148;
+  --color-accent-500: #8c322f;
+  --color-accent-600: #6e1d1a;
+  --color-accent-700: #591714;
 
   /* Zemin: mavi lacivert değil, hafif sıcak antrasit. Bordo mavi zeminde
      mor kaçıyordu; nötr-sıcak kömür üzerinde yerine oturuyor. */
